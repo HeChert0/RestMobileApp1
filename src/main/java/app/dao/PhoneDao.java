@@ -2,20 +2,19 @@ package app.dao;
 
 
 import app.entities.Phone;
-import org.springframework.stereotype.Repository;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.stereotype.Repository;
+
 
 @Repository
-public class PhoneDAO {
+public class PhoneDao {
 
     private final List<Phone> phoneList = new ArrayList<>();
     private long idCounter;
 
-
-    public PhoneDAO() {
+    public PhoneDao() {
         idCounter = 1;
 
         phoneList.add(new Phone(idCounter++, "Apple", "12 Pro", 1000));

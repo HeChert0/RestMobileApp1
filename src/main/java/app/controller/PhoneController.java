@@ -1,8 +1,8 @@
 package app.controller;
 
 import app.entities.Phone;
-import java.util.List;
 import app.service.PhoneService;
+import java.util.List;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -21,7 +21,7 @@ public class PhoneController {
     }
 
     @GetMapping
-    public List<Phone>getPhones(
+    public List<Phone> getPhones(
             @RequestParam(required = false) String brand,
             @RequestParam(required = false) String model,
             @RequestParam(required = false) Integer price) {
