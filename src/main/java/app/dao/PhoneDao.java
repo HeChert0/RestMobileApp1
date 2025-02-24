@@ -14,6 +14,7 @@ public class PhoneDao {
     private final List<Phone> phoneList = new ArrayList<>();
     private long idCounter;
 
+
     public PhoneDao() {
         idCounter = 1;
 

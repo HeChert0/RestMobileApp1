@@ -34,6 +34,3 @@ public class PhoneServiceLocal implements PhoneService {
                 .toList();
     }
 }
-//        if (brand == null && price == null && model == null) {
-//            throw new NullPointerException("Params are null");
-//        }
