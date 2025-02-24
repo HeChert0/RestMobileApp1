@@ -5,9 +5,6 @@ public class Phone {
     private Long id;
     private String brand;
     private String model;
-
-
-
     private Integer price;
 
     public Phone(Long id, String brand, String model, Integer price) {
