@@ -1,4 +1,4 @@
-package com.example.mobileapp.Entities;
+package mobileapp.entities;
 
 
 public class Phone {

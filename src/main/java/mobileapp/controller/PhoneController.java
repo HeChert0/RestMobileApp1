@@ -1,8 +1,8 @@
-package com.example.mobileapp.Controller;
+package mobileapp.controller;
 
-import com.example.mobileapp.Entities.Phone;
+import mobileapp.entities.Phone;
 import java.util.List;
-import com.example.mobileapp.Service.PhoneService;
+import mobileapp.service.PhoneService;
 import org.springframework.web.bind.annotation.*;
 
 @RestController

@@ -1,11 +1,10 @@
-package com.example.mobileapp.Service;
+package mobileapp.service;
 
 
-import com.example.mobileapp.DAO.PhoneDAO;
-import com.example.mobileapp.Entities.Phone;
+import mobileapp.dao.PhoneDAO;
+import mobileapp.entities.Phone;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
