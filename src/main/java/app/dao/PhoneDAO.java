@@ -1,7 +1,7 @@
-package mobileapp.dao;
+package app.dao;
 
 
-import mobileapp.entities.Phone;
+import app.entities.Phone;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;

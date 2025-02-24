@@ -1,7 +1,7 @@
-package mobileapp.service;
+package app.service;
 
 import java.util.List;
-import mobileapp.entities.Phone;
+import app.entities.Phone;
 
 public interface PhoneService {
     Phone getPhoneById(long id);

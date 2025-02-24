@@ -1,4 +1,4 @@
-package mobileapp.entities;
+package app.entities;
 
 
 public class Phone {

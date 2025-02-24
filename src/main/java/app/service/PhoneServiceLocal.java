@@ -1,8 +1,8 @@
-package mobileapp.service;
+package app.service;
 
 
-import mobileapp.dao.PhoneDAO;
-import mobileapp.entities.Phone;
+import app.dao.PhoneDAO;
+import app.entities.Phone;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
