@@ -1,6 +1,5 @@
 package app.entities;
 
-
 public class Phone {
     private Long id;
     private String brand;
