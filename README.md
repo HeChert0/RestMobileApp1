@@ -1,4 +1,4 @@
-# MobileApp REST API
+# MobileApp
 
 ## Описание
 Этот проект представляет собой REST API для управления каталогом мобильных телефонов. Реализовано с использованием Spring Boot.
@@ -6,6 +6,13 @@
 ## Функциональность
 - Получение информации о телефоне по ID
 - Фильтрация списка телефонов по бренду, модели и цене
+
+## Стек технологий
+- Java 17
+- Spring Boot
+- Spring Web
+- Maven
+- REST API
 
 ## Структура проекта
 ```
@@ -29,48 +36,38 @@ MobileApp
 ```
 
 ## Установка и запуск
-
 ### 1. Клонирование репозитория
 ```sh
-git clone https://github.com/HeChert0/MobileAppRest.git
-cd MobileAppRest
+git clone <URL-репозитория>
+cd MobileApp
 ```
-
 ### 2. Сборка и запуск
-
-#### Использование Maven
 ```sh
 mvn spring-boot:run
 ```
+Приложение запустится на `http://localhost:8080`
 
-#### Использование Java
-```sh
-mvn package
-java -jar target/MobileApp-0.0.1-SNAPSHOT.jar
-```
-
-#### API
-
-Получение всех телефонов
-
+## API
+### Получение всех телефонов
+```http
 GET /phones
-
-Пример ответа:
-
+```
+**Пример ответа:**
+```json
 [
     {"id": 1, "brand": "Apple", "model": "12 Pro", "price": 1000},
     {"id": 2, "brand": "Huawei", "model": "X32", "price": 666}
 ]
-
-Получение телефона по ID
-
+```
+### Получение телефона по ID
+```http
 GET /phones/{id}
-
-Фильтрация по параметрам
-
+```
+### Фильтрация по параметрам
+```http
 GET /phones?brand=Apple&model=12 Pro&price=1000
+```
 
-#### Контакты
-Автор: HeChert0  
-GitHub: [https://github.com/HeChert0](https://github.com/HeChert0)
+## Контакты
+Автор: Nikita
 
