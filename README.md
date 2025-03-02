@@ -9,18 +9,23 @@
 
 ## Структура проекта
 ```
-MobileApp/
-├── src/main/java/app/
-│   ├── MobileApplication.java          # Главный класс приложения
-│   ├── controller/
-│   │   ├── PhoneController.java        # REST контроллер
-│   ├── service/
-│   │   ├── PhoneService.java           # Интерфейс сервиса
-│   │   ├── PhoneServiceLocal.java      # Реализация сервиса
-│   ├── dao/
-│   │   ├── PhoneDAO.java               # DAO-класс с моковыми данными
-│   ├── entities/
-│   │   ├── Phone.java                  # Класс-сущность "Телефон"
+MobileApp
+├── src
+│   ├── main
+│   │   ├── java
+│   │   │   ├── app
+│   │   │   │   ├── controller      # Контроллеры REST API
+│   │   │   │   │   ├── PhoneController.java
+│   │   │   │   ├── dao             # Работа с данными
+│   │   │   │   │   ├── PhoneDao.java
+│   │   │   │   ├── entities        # Сущности
+│   │   │   │   │   ├── Phone.java
+│   │   │   │   ├── service         # Логика приложения
+│   │   │   │   │   ├── PhoneService.java
+│   │   │   │   │   ├── PhoneServiceLocal.java
+│   │   │   │   ├── MobileApplication.java  # Главный класс Spring Boot
+│   │   ├── resources
+│   │   │   ├── application.properties  # Настройки Spring Boot
 ```
 
 ## Установка и запуск
