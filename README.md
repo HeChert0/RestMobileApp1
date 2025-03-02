@@ -1,69 +1,64 @@
-# MobileApp
+# MobileApp REST API
 
 ## Описание
-MobileApp - это RESTful приложение, реализованное с использованием Spring Boot. Оно управляет каталогом телефонов, предоставляя API для получения списка телефонов, поиска по ID и фильтрации по параметрам.
+Этот проект представляет собой REST API для управления каталогом мобильных телефонов. Реализовано с использованием Spring Boot.
 
-## Стек технологий
-- Java 17
-- Spring Boot
-- Spring Web
-- Maven
-- REST API
+## Функциональность
+- Получение информации о телефоне по ID
+- Фильтрация списка телефонов по бренду, модели и цене
 
 ## Структура проекта
 ```
-MobileApp
-├── src
-│   ├── main
-│   │   ├── java
-│   │   │   ├── app
-│   │   │   │   ├── controller      # Контроллеры REST API
-│   │   │   │   │   ├── PhoneController.java
-│   │   │   │   ├── dao             # Работа с данными
-│   │   │   │   │   ├── PhoneDao.java
-│   │   │   │   ├── entities        # Сущности
-│   │   │   │   │   ├── Phone.java
-│   │   │   │   ├── service         # Логика приложения
-│   │   │   │   │   ├── PhoneService.java
-│   │   │   │   │   ├── PhoneServiceLocal.java
-│   │   │   │   ├── MobileApplication.java  # Главный класс Spring Boot
-│   │   ├── resources
-│   │   │   ├── application.properties  # Настройки Spring Boot
+MobileApp/
+├── src/main/java/app/
+│   ├── MobileApplication.java          # Главный класс приложения
+│   ├── controller/
+│   │   ├── PhoneController.java        # REST контроллер
+│   ├── service/
+│   │   ├── PhoneService.java           # Интерфейс сервиса
+│   │   ├── PhoneServiceLocal.java      # Реализация сервиса
+│   ├── dao/
+│   │   ├── PhoneDAO.java               # DAO-класс с моковыми данными
+│   ├── entities/
+│   │   ├── Phone.java                  # Класс-сущность "Телефон"
 ```
 
 ## Установка и запуск
+
 ### 1. Клонирование репозитория
 ```sh
-git clone <URL-репозитория>
-cd MobileApp
+git clone https://github.com/HeChert0/MobileAppRest.git
+cd MobileAppRest
 ```
+
 ### 2. Сборка и запуск
+
+#### Использование Maven
 ```sh
 mvn spring-boot:run
 ```
-Приложение запустится на `http://localhost:8080`
+
+#### Использование Java
+```sh
+mvn package
+java -jar target/MobileApp-0.0.1-SNAPSHOT.jar
+```
 
 ## API
-### Получение всех телефонов
-```http
-GET /phones
+
+### Получить телефон по ID
+**GET** `/phones/{id}`
+```sh
+curl -X GET http://localhost:8080/phones/1
 ```
-**Пример ответа:**
-```json
-[
-    {"id": 1, "brand": "Apple", "model": "12 Pro", "price": 1000},
-    {"id": 2, "brand": "Huawei", "model": "X32", "price": 666}
-]
-```
-### Получение телефона по ID
-```http
-GET /phones/{id}
-```
-### Фильтрация по параметрам
-```http
-GET /phones?brand=Apple&model=12 Pro&price=1000
+
+### Фильтрация телефонов
+**GET** `/phones`
+```sh
+curl -X GET "http://localhost:8080/phones?brand=Apple&price=1000"
 ```
 
 ## Контакты
-Автор: Nikita
+Автор: HeChert0  
+GitHub: [https://github.com/HeChert0](https://github.com/HeChert0)
 
