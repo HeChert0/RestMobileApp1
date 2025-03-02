@@ -49,21 +49,28 @@ mvn package
 java -jar target/MobileApp-0.0.1-SNAPSHOT.jar
 ```
 
-## API
+#### API
 
-### Получить телефон по ID
-**GET** `/phones/{id}`
-```sh
-curl -X GET http://localhost:8080/phones/1
-```
+Получение всех телефонов
 
-### Фильтрация телефонов
-**GET** `/phones`
-```sh
-curl -X GET "http://localhost:8080/phones?brand=Apple&price=1000"
-```
+GET /phones
 
-## Контакты
+Пример ответа:
+
+[
+    {"id": 1, "brand": "Apple", "model": "12 Pro", "price": 1000},
+    {"id": 2, "brand": "Huawei", "model": "X32", "price": 666}
+]
+
+Получение телефона по ID
+
+GET /phones/{id}
+
+Фильтрация по параметрам
+
+GET /phones?brand=Apple&model=12 Pro&price=1000
+
+#### Контакты
 Автор: HeChert0  
 GitHub: [https://github.com/HeChert0](https://github.com/HeChert0)
 
