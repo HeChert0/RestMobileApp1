@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
-@RequestMapping("/phones")
+@RequestMapping("/phoness")
 public class PhoneController {
 
     private final PhoneService phoneService;
