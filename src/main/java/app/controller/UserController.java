@@ -5,6 +5,7 @@ import app.models.User;
 import app.models.Smartphone;
 import app.service.UserService;
 import app.service.SmartphoneService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -40,7 +41,7 @@ public class UserController {
     }
 
     @PostMapping
-    public UserDTO createUser(@RequestBody UserDTO userDTO) {
+    public UserDTO createUser(@Valid @RequestBody UserDTO userDTO) {
         User user = new User(userDTO.getName());
         User savedUser = userService.saveUser(user);
         return convertToDTO(savedUser);
@@ -72,7 +73,7 @@ public class UserController {
                 new ArrayList<>() :
                 user.getSmartphones().stream().map(Smartphone::getId).toList();
 
-        return new UserDTO(user.getId(), user.getName(), smartphoneIds);
+        return new UserDTO(user.getId(), user.getUsername(), smartphoneIds);
     }
 
 }
