@@ -1,10 +1,17 @@
 package app.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.List;
 
 public class UserDTO {
     private Long id;
+
+    @NotBlank(message = "Имя пользователя не может быть пустым")
+    @Size(min = 2, max = 50, message = "Имя пользователя должно содержать от 2 до 50 символов")
     private String name;
+
     private List<Long> smartphoneIds;
 
     public UserDTO() {}

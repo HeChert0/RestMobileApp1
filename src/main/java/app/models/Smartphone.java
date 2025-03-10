@@ -1,5 +1,6 @@
 package app.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.util.List;
 
@@ -15,6 +16,7 @@ public class Smartphone {
     @JoinColumn(name = "order_id")
     private Order order;
 
+    @JsonIgnore
     @ManyToMany(mappedBy = "smartphones")
     private List<User> users;
 

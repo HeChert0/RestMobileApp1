@@ -1,6 +1,9 @@
 package app.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -19,7 +22,8 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "smartphone_id")
     )
-    private List<Smartphone> smartphones;
+    @JsonIgnore
+    private List<Smartphone> smartphones = new ArrayList<>();
 
     public User() {}
 
