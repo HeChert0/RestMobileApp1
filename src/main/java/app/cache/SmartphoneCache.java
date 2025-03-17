@@ -20,3 +20,9 @@ public class SmartphoneCache {
         cache.put(customerName, smartphones);
     }
 }
+//ограничить, шо если заполнен, удалить вместе delete put
+//фул collection и collections, отличие linkedList arraylist
+//как раюотает мапа и как в ней putЧ
+//log файл - брать только определенные(сегодня мб)
+//swagger, аоп
+//логирование
