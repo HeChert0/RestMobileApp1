@@ -1,16 +1,15 @@
 package app.service;
 
+import app.dao.OrderRepository;
 import app.dao.SmartphoneRepository;
-import app.dto.OrderDTO;
+import app.dto.OrderDto;
 import app.mapper.OrderMapper;
 import app.models.Order;
-import app.dao.OrderRepository;
 import app.models.Smartphone;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Optional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 @Service
 public class OrderService {
@@ -36,14 +35,14 @@ public class OrderService {
         return orderRepository.findById(id);
     }
 
-    public Order createOrder(OrderDTO orderDTO) {
+    public Order createOrder(OrderDto orderDto) {
 
-        Order order = orderMapper.toEntity(orderDTO);
+        Order order = orderMapper.toEntity(orderDto);
 
-        if (orderDTO.getSmartphoneIds() != null && !orderDTO.getSmartphoneIds().isEmpty()) {
-            List<Smartphone> phones = smartphoneRepository.findAllById(orderDTO.getSmartphoneIds());
+        if (orderDto.getSmartphoneIds() != null && !orderDto.getSmartphoneIds().isEmpty()) {
+            List<Smartphone> phones = smartphoneRepository.findAllById(orderDto.getSmartphoneIds());
 
-            if (phones.size() < orderDTO.getSmartphoneIds().size()) {
+            if (phones.size() < orderDto.getSmartphoneIds().size()) {
                 throw new IllegalArgumentException("Some smartphone IDs do not exist!");
             }
 

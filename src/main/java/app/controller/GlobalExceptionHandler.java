@@ -33,6 +33,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<String> handleDuplicateKeyException(
             DataIntegrityViolationException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body("Пользователь с таким именем уже существует.");
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body("Пользователь с таким именем уже существует.");
     }
 }

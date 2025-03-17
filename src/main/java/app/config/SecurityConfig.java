@@ -8,9 +8,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import static org.springframework.security.config.Customizer.withDefaults;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -25,27 +24,20 @@ public class SecurityConfig {
         this.appUserService = appUserService;
     }
 
+    @SuppressWarnings("checkstyle:WhitespaceAround")
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-//        http
-//                .csrf(csrf -> csrf.disable())
-//                .authorizeHttpRequests(authorize -> authorize
-//                        .requestMatchers("/api/auth/register").permitAll()
-//                        .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
-//                        .anyRequest().authenticated()
-//                )
-//                .httpBasic(withDefaults());
-        http
-                .csrf(csrf -> csrf.disable())
+
+        http.csrf(csrf-> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll()
-                );
+                        .anyRequest().permitAll());
 
         return http.build();
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
     }
 
@@ -62,3 +54,12 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 }
+
+//        http
+//                .csrf(csrf -> csrf.disable())
+//                .authorizeHttpRequests(authorize -> authorize
+//                        .requestMatchers("/api/auth/register").permitAll()
+//                        .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
+//                        .anyRequest().authenticated()
+//                )
+//                .httpBasic(withDefaults());

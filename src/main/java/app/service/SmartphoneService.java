@@ -1,15 +1,17 @@
 package app.service;
 
+
 import app.dao.OrderRepository;
-import app.dto.SmartphoneDTO;
+import app.dao.SmartphoneRepository;
+import app.dto.SmartphoneDto;
 import app.mapper.SmartphoneMapper;
 import app.models.Order;
 import app.models.Smartphone;
-import app.dao.SmartphoneRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 
 @Service
 public class SmartphoneService {
@@ -35,13 +37,14 @@ public class SmartphoneService {
         return smartphoneRepository.findById(id);
     }
 
-    public Smartphone createSmartphone(SmartphoneDTO smartphoneDTO) {
-        Smartphone smartphone = smartphoneMapper.toEntity(smartphoneDTO);
+    public Smartphone createSmartphone(SmartphoneDto smartphoneDto) {
+        Smartphone smartphone = smartphoneMapper.toEntity(smartphoneDto);
 
-        if (smartphoneDTO.getOrderId() != null) {
-            Optional<Order> orderOpt = orderRepository.findById(smartphoneDTO.getOrderId());
+        if (smartphoneDto.getOrderId() != null) {
+            Optional<Order> orderOpt = orderRepository.findById(smartphoneDto.getOrderId());
             if (orderOpt.isEmpty()) {
-                throw new IllegalArgumentException("Order with id " + smartphoneDTO.getOrderId() + " does not exist!");
+                throw new IllegalArgumentException(
+                        "Order with id " + smartphoneDto.getOrderId() + " does not exist!");
             }
             Order order = orderOpt.get();
             smartphone.setOrder(order);
@@ -62,34 +65,35 @@ public class SmartphoneService {
                 .toList();
     }
 
-    public Smartphone updateSmartphone(Long id, SmartphoneDTO smartphoneDTO) {
+    public Smartphone updateSmartphone(Long id, SmartphoneDto smartphoneDto) {
         Smartphone smartphone = smartphoneRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Smartphone with id " + id + " does not exist!"));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Smartphone with id " + id + " does not exist!"));
 
         // Обновляем только переданные поля
-        if (smartphoneDTO.getBrand() != null) {
-            smartphone.setBrand(smartphoneDTO.getBrand());
+        if (smartphoneDto.getBrand() != null) {
+            smartphone.setBrand(smartphoneDto.getBrand());
         }
-        if (smartphoneDTO.getModel() != null) {
-            smartphone.setModel(smartphoneDTO.getModel());
+        if (smartphoneDto.getModel() != null) {
+            smartphone.setModel(smartphoneDto.getModel());
         }
-        if (smartphoneDTO.getPrice() != 0.0) {
-            smartphone.setPrice(smartphoneDTO.getPrice());
+        if (smartphoneDto.getPrice() != 0.0) {
+            smartphone.setPrice(smartphoneDto.getPrice());
         }
 
         // Проверяем, указан ли новый orderId
-        if (smartphoneDTO.getOrderId() != null) {
-            Order order = orderRepository.findById(smartphoneDTO.getOrderId())
-                    .orElseThrow(() -> new IllegalArgumentException("Order with id " + smartphoneDTO.getOrderId() + " does not exist!"));
+        if (smartphoneDto.getOrderId() != null) {
+            Order order = orderRepository.findById(smartphoneDto.getOrderId())
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Order with id " + smartphoneDto.getOrderId() + " does not exist!"));
             smartphone.setOrder(order);
         }
 
         return smartphoneRepository.save(smartphone);
     }
 
-
-    public List<Smartphone> getPhonesByCustomerNameJPQL(String customerName) {
-        return smartphoneRepository.findByCustomerNameJPQL(customerName);
+    public List<Smartphone> getPhonesByCustomerNameJpql(String customerName) {
+        return smartphoneRepository.findByCustomerNameJpql(customerName);
     }
 
     public List<Smartphone> getPhonesByCustomerNameNative(String customerName) {

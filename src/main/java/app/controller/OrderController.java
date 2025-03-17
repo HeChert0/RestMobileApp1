@@ -1,20 +1,21 @@
 package app.controller;
 
-import app.dto.OrderDTO;
+
+import app.dto.OrderDto;
 import app.mapper.OrderMapper;
 import app.models.Order;
 import app.service.OrderService;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/orders")
@@ -30,13 +31,13 @@ public class OrderController {
     }
 
     @GetMapping
-    public List<OrderDTO> getAllOrders() {
+    public List<OrderDto> getAllOrders() {
         List<Order> orders = orderService.getAllOrders();
         return orderMapper.toDtos(orders);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<OrderDTO> getOrderById(@PathVariable Long id) {
+    public ResponseEntity<OrderDto> getOrderById(@PathVariable Long id) {
         return orderService.getOrderById(id)
                 .map(orderMapper::toDto)
                 .map(ResponseEntity::ok)
@@ -44,8 +45,8 @@ public class OrderController {
     }
 
     @PostMapping
-    public ResponseEntity<OrderDTO> createOrder(@RequestBody OrderDTO orderDTO) {
-        Order savedOrder = orderService.createOrder(orderDTO);
+    public ResponseEntity<OrderDto> createOrder(@RequestBody OrderDto orderDto) {
+        Order savedOrder = orderService.createOrder(orderDto);
         return ResponseEntity.ok(orderMapper.toDto(savedOrder));
     }
 

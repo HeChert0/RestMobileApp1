@@ -1,15 +1,23 @@
 package app.controller;
 
 import app.cache.SmartphoneCache;
-import app.dto.SmartphoneDTO;
+import app.dto.SmartphoneDto;
 import app.mapper.SmartphoneMapper;
 import app.models.Smartphone;
 import app.service.SmartphoneService;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/phones")
@@ -29,13 +37,13 @@ public class SmartphoneController {
     }
 
     @GetMapping
-    public List<SmartphoneDTO> getAllSmartphones() {
+    public List<SmartphoneDto> getAllSmartphones() {
         List<Smartphone> smartphones = smartphoneService.getAllSmartphones();
         return smartphoneMapper.toDtos(smartphones);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<SmartphoneDTO> getSmartphoneById(@PathVariable Long id) {
+    public ResponseEntity<SmartphoneDto> getSmartphoneById(@PathVariable Long id) {
         return smartphoneService.getSmartphoneById(id)
                 .map(smartphoneMapper::toDto)
                 .map(ResponseEntity::ok)
@@ -43,9 +51,9 @@ public class SmartphoneController {
     }
 
     @PostMapping
-    public ResponseEntity<SmartphoneDTO> createSmartphone(
-            @RequestBody SmartphoneDTO smartphoneDTO) {
-        Smartphone savedPhone = smartphoneService.createSmartphone(smartphoneDTO);
+    public ResponseEntity<SmartphoneDto> createSmartphone(
+            @RequestBody SmartphoneDto smartphoneDto) {
+        Smartphone savedPhone = smartphoneService.createSmartphone(smartphoneDto);
         return ResponseEntity.ok(smartphoneMapper.toDto(savedPhone));
     }
 
@@ -60,9 +68,9 @@ public class SmartphoneController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<SmartphoneDTO> updateSmartphone(
-            @PathVariable Long id, @RequestBody SmartphoneDTO smartphoneDTO) {
-        Smartphone updatedPhone = smartphoneService.updateSmartphone(id, smartphoneDTO);
+    public ResponseEntity<SmartphoneDto> updateSmartphone(
+            @PathVariable Long id, @RequestBody SmartphoneDto smartphoneDto) {
+        Smartphone updatedPhone = smartphoneService.updateSmartphone(id, smartphoneDto);
         return ResponseEntity.ok(smartphoneMapper.toDto(updatedPhone));
     }
 
@@ -76,7 +84,7 @@ public class SmartphoneController {
     }
 
     @GetMapping("/by-customer")
-    public ResponseEntity<List<SmartphoneDTO>> getPhonesByCustomerName(
+    public ResponseEntity<List<SmartphoneDto>> getPhonesByCustomerName(
             @RequestParam String customerName,
             @RequestParam(defaultValue = "false") boolean nativeQuery) {
 
@@ -89,7 +97,7 @@ public class SmartphoneController {
         if (nativeQuery) {
             smartphones = smartphoneService.getPhonesByCustomerNameNative(customerName);
         } else {
-            smartphones = smartphoneService.getPhonesByCustomerNameJPQL(customerName);
+            smartphones = smartphoneService.getPhonesByCustomerNameJpql(customerName);
         }
 
         smartphoneCache.putToCache(customerName, smartphones);

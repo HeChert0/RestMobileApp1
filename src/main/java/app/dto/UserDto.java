@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.util.List;
 
-public class UserDTO {
+public class UserDto {
     private Long id;
 
     @NotBlank(message = "Имя пользователя не может быть пустым")
@@ -15,9 +15,9 @@ public class UserDTO {
 
     private List<Long> smartphoneIds;
 
-    public UserDTO() {}
+    public UserDto() {}
 
-    public UserDTO(Long id, String username, List<Long> smartphoneIds, String password) {
+    public UserDto(Long id, String username, List<Long> smartphoneIds, String password) {
         this.id = id;
         this.username = username;
         this.smartphoneIds = smartphoneIds;
@@ -36,6 +36,7 @@ public class UserDTO {
     public String getUsername() {
         return username;
     }
+
     public void setUsername(String username) {
         this.username = username;
     }
