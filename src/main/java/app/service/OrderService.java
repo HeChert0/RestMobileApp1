@@ -43,7 +43,6 @@ public class OrderService {
         if (orderDTO.getSmartphoneIds() != null && !orderDTO.getSmartphoneIds().isEmpty()) {
             List<Smartphone> phones = smartphoneRepository.findAllById(orderDTO.getSmartphoneIds());
 
-            // Если какие-то ID не найдены, можно выбросить исключение
             if (phones.size() < orderDTO.getSmartphoneIds().size()) {
                 throw new IllegalArgumentException("Some smartphone IDs do not exist!");
             }

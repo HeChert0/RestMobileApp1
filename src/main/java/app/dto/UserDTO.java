@@ -13,9 +13,6 @@ public class UserDTO {
 
     private String password;
 
-    // Можно добавить дополнительные поля, например, email и т.д.
-
-    // Для связи со смартфонами – список ID или вложенные объекты
     private List<Long> smartphoneIds;
 
     public UserDTO() {}

@@ -27,8 +27,6 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    private String name;
-
     @ManyToMany
     @JoinTable(
             name = "user_smartphone",
@@ -40,8 +38,8 @@ public class User implements UserDetails {
 
     public User() {}
 
-    public User(String name) {
-        this.name = name;
+    public User(String username) {
+        this.username = username;
     }
 
     public Long getId() {
