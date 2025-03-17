@@ -1,39 +1,47 @@
 package app.controller;
 
+import app.dto.OrderDTO;
+import app.mapper.OrderMapper;
 import app.models.Order;
 import app.service.OrderService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/orders")
 public class OrderController {
 
     private final OrderService orderService;
+    private final OrderMapper orderMapper;
 
     @Autowired
-    public OrderController(OrderService orderService) {
+    public OrderController(OrderService orderService, OrderMapper orderMapper) {
         this.orderService = orderService;
+        this.orderMapper = orderMapper;
     }
 
     @GetMapping
-    public List<Order> getAllOrders() {
-        return orderService.getAllOrders();
+    public List<OrderDTO> getAllOrders() {
+        List<Order> orders = orderService.getAllOrders();
+        return orderMapper.toDtos(orders);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Order> getOrderById(@PathVariable Long id) {
-        Optional<Order> order = orderService.getOrderById(id);
-        return order.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<OrderDTO> getOrderById(@PathVariable Long id) {
+        return orderService.getOrderById(id)
+                .map(orderMapper::toDto)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public Order createOrder(@RequestBody Order order) {
-        return orderService.saveOrder(order);
+    public ResponseEntity<OrderDTO> createOrder(@RequestBody OrderDTO orderDTO) {
+        Order savedOrder = orderService.createOrder(orderDTO);
+        return ResponseEntity.ok(orderMapper.toDto(savedOrder));
     }
 
     @DeleteMapping("/{id}")

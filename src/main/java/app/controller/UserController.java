@@ -1,61 +1,59 @@
 package app.controller;
 
 import app.dto.UserDTO;
+import app.mapper.UserMapper;
 import app.models.User;
-import app.models.Smartphone;
 import app.service.UserService;
-import app.service.SmartphoneService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/users")
 public class UserController {
 
     private final UserService userService;
-    private final SmartphoneService smartphoneService;
+    private final UserMapper userMapper;
 
     @Autowired
-    public UserController(UserService userService, SmartphoneService smartphoneService) {
+    public UserController(UserService userService, UserMapper userMapper) {
         this.userService = userService;
-        this.smartphoneService = smartphoneService;
+        this.userMapper = userMapper;
     }
 
     @GetMapping
     public List<UserDTO> getAllUsers() {
-        return userService.getAllUsers().stream().map(this::convertToDTO).toList();
+        List<User> users = userService.getAllUsers();
+        return userMapper.toDtos(users);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
-        Optional<User> user = userService.getUserById(id);
-        return user.map(value -> ResponseEntity.ok(convertToDTO(value)))
+        return userService.getUserById(id)
+                .map(userMapper::toDto)
+                .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
     public UserDTO createUser(@Valid @RequestBody UserDTO userDTO) {
-        User user = new User(userDTO.getName());
+        User user = userMapper.toEntity(userDTO);
         User savedUser = userService.saveUser(user);
-        return convertToDTO(savedUser);
+        return userMapper.toDto(savedUser);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserDTO> updateUserSmartphones(@PathVariable Long id, @RequestBody UserDTO userDTO) {
-        List<Smartphone> smartphones = userDTO.getSmartphoneIds().stream()
-                .map(smartphoneService::getSmartphoneById)
-                .flatMap(Optional::stream)
-                .toList();
-
-        User updatedUser = userService.updateSmartphones(id, smartphones);
-        return ResponseEntity.ok(convertToDTO(updatedUser));
+    public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @Valid @RequestBody UserDTO userDTO) {
+        return userService.getUserById(id)
+                .map(existingUser -> {
+                    User updatedUser = userMapper.merge(existingUser, userDTO);
+                    updatedUser = userService.saveUser(updatedUser);
+                    return ResponseEntity.ok(userMapper.toDto(updatedUser));
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
@@ -67,13 +65,4 @@ public class UserController {
             return ResponseEntity.notFound().build();
         }
     }
-
-    private UserDTO convertToDTO(User user) {
-        List<Long> smartphoneIds = (user.getSmartphones() == null) ?
-                new ArrayList<>() :
-                user.getSmartphones().stream().map(Smartphone::getId).toList();
-
-        return new UserDTO(user.getId(), user.getUsername(), smartphoneIds);
-    }
-
 }

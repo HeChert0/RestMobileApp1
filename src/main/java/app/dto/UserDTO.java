@@ -1,7 +1,6 @@
 package app.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.List;
 
@@ -10,18 +9,25 @@ public class UserDTO {
 
     @NotBlank(message = "Имя пользователя не может быть пустым")
     @Size(min = 2, max = 50, message = "Имя пользователя должно содержать от 2 до 50 символов")
-    private String name;
+    private String username; // или name, в зависимости от того, что ты считаешь основным
 
+    private String password;
+
+    // Можно добавить дополнительные поля, например, email и т.д.
+
+    // Для связи со смартфонами – список ID или вложенные объекты
     private List<Long> smartphoneIds;
 
     public UserDTO() {}
 
-    public UserDTO(Long id, String name, List<Long> smartphoneIds) {
+    public UserDTO(Long id, String username, List<Long> smartphoneIds, String password) {
         this.id = id;
-        this.name = name;
+        this.username = username;
         this.smartphoneIds = smartphoneIds;
+        this.password = password;
     }
 
+    // Геттеры и сеттеры
     public Long getId() {
         return id;
     }
@@ -30,12 +36,11 @@ public class UserDTO {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public String getUsername() {
+        return username;
     }
-
-    public void setName(String name) {
-        this.name = name;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public List<Long> getSmartphoneIds() {
@@ -44,5 +49,13 @@ public class UserDTO {
 
     public void setSmartphoneIds(List<Long> smartphoneIds) {
         this.smartphoneIds = smartphoneIds;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 }
