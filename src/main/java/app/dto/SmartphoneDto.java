@@ -1,24 +1,22 @@
 package app.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class SmartphoneDto {
     private Long id;
+
+    @NotBlank(message = "Brand cannot be blank")
     private String brand;
+
+    @NotBlank(message = "Model cannot be blank")
     private String model;
-    private double price;
-    // Если нужно указать, к какому заказу привязан – можно добавить orderId:
-    private Long orderId;
 
-    public SmartphoneDto() {}
+    @NotNull(message = "Price cannot be null")
+    private Double price;
 
-    public SmartphoneDto(Long id, String brand, String model, double price, Long orderId) {
-        this.id = id;
-        this.brand = brand;
-        this.model = model;
-        this.price = price;
-        this.orderId = orderId;
-    }
-
-    // Геттеры и сеттеры
     public Long getId() {
         return id;
     }
@@ -35,6 +33,7 @@ public class SmartphoneDto {
         this.brand = brand;
     }
 
+
     public String getModel() {
         return model;
     }
@@ -43,19 +42,11 @@ public class SmartphoneDto {
         this.model = model;
     }
 
-    public double getPrice() {
+    public Double getPrice() {
         return price;
     }
 
-    public void setPrice(double price) {
+    public void setPrice(Double price) {
         this.price = price;
-    }
-
-    public Long getOrderId() {
-        return orderId;
-    }
-
-    public void setOrderId(Long orderId) {
-        this.orderId = orderId;
     }
 }

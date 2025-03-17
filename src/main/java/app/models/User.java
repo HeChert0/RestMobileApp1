@@ -2,17 +2,18 @@ package app.models;
 
 import app.entities.Role;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -27,9 +28,11 @@ public class User implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "Username cannot be blank")
     @Column(unique = true, nullable = false)
     private String username;
 
+    @NotBlank(message = "Password cannot be blank")
     @Column(nullable = false)
     private String password;
 
@@ -37,20 +40,9 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private Role role = Role.USER;
 
-    @ManyToMany
-    @JoinTable(
-            name = "user_smartphone",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "smartphone_id")
-    )
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
-    private List<Smartphone> smartphones = new ArrayList<>();
-
-    public User() {}
-
-    public User(String username) {
-        this.username = username;
-    }
+    private List<Order> orders = new ArrayList<>();
 
     public Long getId() {
         return id;
@@ -59,23 +51,13 @@ public class User implements UserDetails {
     public String getUsername() {
         return username;
     }
-
     public void setUsername(String username) {
         this.username = username;
-    }
-
-    public List<Smartphone> getSmartphones() {
-        return smartphones;
-    }
-
-    public void setSmartphones(List<Smartphone> smartphones) {
-        this.smartphones = smartphones;
     }
 
     public String getPassword() {
         return password;
     }
-
     public void setPassword(String password) {
         this.password = password;
     }
@@ -83,9 +65,15 @@ public class User implements UserDetails {
     public Role getRole() {
         return role;
     }
-
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    public List<Order> getOrders() {
+        return orders;
+    }
+    public void setOrders(List<Order> orders) {
+        this.orders = orders;
     }
 
     @Override

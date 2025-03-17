@@ -2,29 +2,29 @@ package app.service;
 
 import app.dao.OrderRepository;
 import app.dao.SmartphoneRepository;
-import app.dto.OrderDto;
-import app.mapper.OrderMapper;
+import app.dao.UserRepository;
 import app.models.Order;
 import app.models.Smartphone;
-import java.util.List;
-import java.util.Optional;
+import app.models.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class OrderService {
 
     private final OrderRepository orderRepository;
-    private final OrderMapper orderMapper;
     private final SmartphoneRepository smartphoneRepository;
+    private final UserRepository userRepository;
 
     @Autowired
     public OrderService(OrderRepository orderRepository,
                         SmartphoneRepository smartphoneRepository,
-                        OrderMapper orderMapper) {
+                        UserRepository userRepository) {
         this.orderRepository = orderRepository;
         this.smartphoneRepository = smartphoneRepository;
-        this.orderMapper = orderMapper;
+        this.userRepository = userRepository;
     }
 
     public List<Order> getAllOrders() {
@@ -35,27 +35,30 @@ public class OrderService {
         return orderRepository.findById(id);
     }
 
-    public Order createOrder(OrderDto orderDto) {
-
-        Order order = orderMapper.toEntity(orderDto);
-
-        if (orderDto.getSmartphoneIds() != null && !orderDto.getSmartphoneIds().isEmpty()) {
-            List<Smartphone> phones = smartphoneRepository.findAllById(orderDto.getSmartphoneIds());
-
-            if (phones.size() < orderDto.getSmartphoneIds().size()) {
-                throw new IllegalArgumentException("Some smartphone IDs do not exist!");
-            }
-
-            for (Smartphone phone : phones) {
-                phone.setOrder(order);
-            }
+    public Order createOrder(Order order, List<Long> smartphoneIds) {
+        // Устанавливаем связь со смартфонами, если переданы ID
+        if (smartphoneIds != null && !smartphoneIds.isEmpty()) {
+            List<Smartphone> phones = smartphoneRepository.findAllById(smartphoneIds);
             order.setSmartphones(phones);
         }
-
         return orderRepository.save(order);
     }
 
-    public void deleteOrder(Long id) {
+    public Order updateOrder(Long id, Order updatedOrder, List<Long> smartphoneIds) {
+        return orderRepository.findById(id).map(existingOrder -> {
+            existingOrder.setOrderDate(updatedOrder.getOrderDate());
+            existingOrder.setTotalAmount(updatedOrder.getTotalAmount());
+            existingOrder.setUser(updatedOrder.getUser());
+            if (smartphoneIds != null) {
+                List<Smartphone> phones = smartphoneRepository.findAllById(smartphoneIds);
+                existingOrder.setSmartphones(phones);
+            }
+            return orderRepository.save(existingOrder);
+        }).orElse(null);
+    }
+
+
+    public void deleteOrder(Long id){
         orderRepository.deleteById(id);
     }
 }

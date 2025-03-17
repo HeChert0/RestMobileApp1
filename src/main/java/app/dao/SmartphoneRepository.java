@@ -9,11 +9,4 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface SmartphoneRepository extends JpaRepository<Smartphone, Long> {
-
-    @Query("SELECT s FROM Smartphone s JOIN s.order o WHERE o.customerName = :customerName")
-    List<Smartphone> findByCustomerNameJpql(@Param("customerName") String customerName);
-
-    @Query(value = "SELECT s.* FROM smartphones s JOIN orders o ON s.order_id = o.id "
-            + "WHERE o.customer_name = :customerName", nativeQuery = true)
-    List<Smartphone> findByCustomerNameNative(@Param("customerName") String customerName);
 }

@@ -1,30 +1,33 @@
 package app.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.util.List;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class UserDto {
     private Long id;
 
-    @NotBlank(message = "Имя пользователя не может быть пустым")
-    @Size(min = 2, max = 50, message = "Имя пользователя должно содержать от 2 до 50 символов")
-    private String username; // или name, в зависимости от того, что ты считаешь основным
+    @NotBlank(message = "Username cannot be blank")
+    @Size(min = 2, max = 50, message = "Username must be between 2 and 50 characters")
+    private String username;
 
+    @NotBlank(message = "Password cannot be blank")
     private String password;
 
-    private List<Long> smartphoneIds;
+    private List<Long> orderIds;
 
-    public UserDto() {}
-
-    public UserDto(Long id, String username, List<Long> smartphoneIds, String password) {
-        this.id = id;
-        this.username = username;
-        this.smartphoneIds = smartphoneIds;
-        this.password = password;
+    public UserDto() {
     }
 
-    // Геттеры и сеттеры
+    public UserDto(Long id, String username, String password, List<Long> orderIds) {
+        this.id = id;
+        this.username = username;
+        this.password = password;
+        this.orderIds = orderIds;
+    }
+
     public Long getId() {
         return id;
     }
@@ -41,19 +44,19 @@ public class UserDto {
         this.username = username;
     }
 
-    public List<Long> getSmartphoneIds() {
-        return smartphoneIds;
-    }
-
-    public void setSmartphoneIds(List<Long> smartphoneIds) {
-        this.smartphoneIds = smartphoneIds;
-    }
-
     public String getPassword() {
         return password;
     }
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public List<Long> getOrderIds() {
+        return orderIds;
+    }
+
+    public void setOrderIds(List<Long> orderIds) {
+        this.orderIds = orderIds;
     }
 }

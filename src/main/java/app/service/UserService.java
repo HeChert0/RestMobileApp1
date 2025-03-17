@@ -1,9 +1,6 @@
 package app.service;
 
-
-import app.dao.SmartphoneRepository;
 import app.dao.UserRepository;
-import app.models.Smartphone;
 import app.models.User;
 import java.util.List;
 import java.util.Optional;
@@ -22,9 +19,6 @@ public class UserService implements UserDetailsService {
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    private SmartphoneRepository smartphoneRepository;
-
-    @Autowired
     public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -38,9 +32,8 @@ public class UserService implements UserDetailsService {
         return userRepository.findById(id);
     }
 
-    public User saveUser(User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        return userRepository.save(user);
+    public Optional<User> getUserDetails(Long id) {
+        return userRepository.findWithOrdersById(id);
     }
 
     @Override
@@ -48,25 +41,25 @@ public class UserService implements UserDetailsService {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
+    public User saveUser(User user) {
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        return userRepository.save(user);
+    }
+
+    public User updateUser(Long id, User updatedUser) {
+        return userRepository.findById(id).map(existingUser -> {
+            existingUser.setUsername(updatedUser.getUsername());
+            // Если передан новый пароль, обновляем его
+            if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
+                existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
+            }
+            // Здесь можно обновлять и другие поля, если требуется
+            return userRepository.save(existingUser);
+        }).orElse(null);
+    }
 
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
     }
-
-
-    public User updateSmartphones(Long userId, List<app.models.Smartphone> smartphones) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        List<app.models.Smartphone> smartphoneEntities = smartphones.stream()
-                .map(s -> (Smartphone) SmartphoneRepository.class.cast(null))
-                .toList();
-
-        user.setSmartphones(smartphoneEntities);
-        return userRepository.save(user);
-    }
-
-    public Optional<User> getUserWithSmartphones(Long id) {
-        return userRepository.findWithSmartphonesById(id);
-    }
 }
+

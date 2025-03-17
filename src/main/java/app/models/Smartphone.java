@@ -1,15 +1,10 @@
 package app.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -20,22 +15,20 @@ public class Smartphone {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "order_id")
-    private Order order;
-
-    @JsonIgnore
-    @ManyToMany(mappedBy = "smartphones")
-    private List<User> users;
-
+    @NotBlank(message = "Brand cannot be blank")
     @Column(nullable = false)
     private String brand;
 
+    @NotBlank(message = "Model cannot be blank")
     @Column(nullable = false)
     private String model;
 
+    @NotNull(message = "Price cannot be null")
     @Column(nullable = false)
-    private double price;
+    private Double price;
+
+    @ManyToMany(mappedBy = "smartphones", fetch = FetchType.LAZY)
+    private List<Order> orders = new ArrayList<>();
 
     public Smartphone() {}
 
@@ -73,19 +66,11 @@ public class Smartphone {
         this.price = price;
     }
 
-    public Order getOrder() {
-        return order;
+    public List<Order> getOrders() {
+        return orders;
     }
 
-    public void setOrder(Order order) {
-        this.order = order;
-    }
-
-    public List<User> getUsers() {
-        return users;
-    }
-
-    public void setUsers(List<User> users) {
-        this.users = users;
+    public void setOrders(List<Order> orders) {
+        this.orders = orders;
     }
 }
