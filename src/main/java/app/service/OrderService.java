@@ -14,7 +14,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Service
@@ -44,6 +44,7 @@ public class OrderService {
         return orderRepository.findWithSmartphonesById(id);
     }
 
+    @Transactional
     public Order createOrder(Order order, List<Long> smartphoneIds) {
         User user = userRepository.findById(order.getUser().getId())
                 .orElseThrow(() -> new IllegalArgumentException(
@@ -71,6 +72,7 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
+    @Transactional
     public Order updateOrder(Long id, Order updatedOrder, List<Long> smartphoneIds) {
         return orderRepository.findById(id).map(existingOrder -> {
             existingOrder.setOrderDate(updatedOrder.getOrderDate() != null
@@ -95,7 +97,7 @@ public class OrderService {
         }).orElseThrow(() -> new IllegalArgumentException("Order with id " + id + " not found."));
     }
 
-
+    @Transactional
     public void deleteOrder(Long id) {
         orderRepository.findById(id).ifPresent(order -> {
             if (order.getUser() != null) {

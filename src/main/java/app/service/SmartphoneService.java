@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Service
@@ -27,10 +28,12 @@ public class SmartphoneService {
         return smartphoneRepository.findById(id);
     }
 
+    @Transactional
     public Smartphone saveSmartphone(Smartphone smartphone) {
         return smartphoneRepository.save(smartphone);
     }
 
+    @Transactional
     public Smartphone updateSmartphone(Long id, Smartphone updatedSmartphone) {
         return smartphoneRepository.findById(id).map(existingSmartphone -> {
             existingSmartphone.setBrand(updatedSmartphone.getBrand());
@@ -40,6 +43,7 @@ public class SmartphoneService {
         }).orElse(null);
     }
 
+    @Transactional
     public void deleteSmartphone(Long id) {
         smartphoneRepository.deleteById(id);
     }
@@ -51,5 +55,4 @@ public class SmartphoneService {
                 .filter(s -> price == null || s.getPrice().equals(price))
                 .collect(Collectors.toList());
     }
-
 }
