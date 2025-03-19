@@ -1,5 +1,6 @@
 package app.service;
 
+import app.cache.InMemoryCache;
 import app.dao.OrderRepository;
 import app.dao.SmartphoneRepository;
 import app.dao.UserRepository;
@@ -12,6 +13,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,24 +27,46 @@ public class OrderService {
     private final SmartphoneRepository smartphoneRepository;
     private final OrderMapper orderMapper;
     private final UserRepository userRepository;
+    private final InMemoryCache<Long, Order> orderCache;
 
     @Autowired
     public OrderService(OrderRepository orderRepository,
                         SmartphoneRepository smartphoneRepository,
                         OrderMapper orderMapper,
-                        UserRepository userRepository) {
+                        UserRepository userRepository,
+                        InMemoryCache<Long, Order> orderCache) {
         this.orderRepository = orderRepository;
         this.smartphoneRepository = smartphoneRepository;
         this.orderMapper = orderMapper;
         this.userRepository = userRepository;
+        this.orderCache = orderCache;
     }
 
+    @SneakyThrows
+    @Transactional(readOnly = true)
     public List<Order> getAllOrders() {
-        return orderRepository.findAll();
+        long dbCount = orderRepository.count();
+        int cacheSize = orderCache.size();
+
+        if (cacheSize == dbCount && cacheSize > 0) {
+            return orderCache.getAllValues();
+        } else {
+            Thread.sleep(2000);
+            List<Order> orders = orderRepository.findAll();
+            orders.forEach(order -> orderCache.put(order.getId(), order));
+            return orders;
+        }
     }
+
 
     public Optional<Order> getOrderById(Long id) {
-        return orderRepository.findWithSmartphonesById(id);
+        Order cachedOrder = orderCache.get(id);
+        if (cachedOrder != null) {
+            return Optional.of(cachedOrder);
+        }
+        Optional<Order> order = orderRepository.findById(id);
+        order.ifPresent(o -> orderCache.put(o.getId(), o));
+        return order;
     }
 
     @Transactional
@@ -59,9 +84,11 @@ public class OrderService {
                         .orElseThrow(() -> new IllegalArgumentException(
                                 "Smartphone with id " + id + " not found.")))
                 .collect(Collectors.toList());
+
         order.setSmartphones(phones);
         double total = phones.stream().mapToDouble(Smartphone::getPrice).sum();
         order.setTotalAmount(total);
+
         if (order.getOrderDate() == null) {
             order.setOrderDate(LocalDate.now());
         }
@@ -69,6 +96,9 @@ public class OrderService {
         if (order.getUser() == null) {
             throw new IllegalArgumentException("Order must be associated with a user.");
         }
+
+        Order savedOrder = orderRepository.save(order);
+        orderCache.put(savedOrder.getId(), savedOrder);
         return orderRepository.save(order);
     }
 
@@ -93,6 +123,9 @@ public class OrderService {
                 double total = phones.stream().mapToDouble(Smartphone::getPrice).sum();
                 existingOrder.setTotalAmount(total);
             }
+
+            Order savedOrder = orderRepository.save(existingOrder);
+            orderCache.update(savedOrder.getId(), savedOrder);
             return orderRepository.save(existingOrder);
         }).orElseThrow(() -> new IllegalArgumentException("Order with id " + id + " not found."));
     }
@@ -107,5 +140,8 @@ public class OrderService {
             }
             orderRepository.delete(order);
         });
+
+        orderRepository.deleteById(id);
+        orderCache.remove(id);
     }
 }
