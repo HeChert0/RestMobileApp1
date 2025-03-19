@@ -1,11 +1,18 @@
 package app.controller;
 
 import app.dto.OrderDto;
+import app.dto.SmartphoneDto;
 import app.mapper.OrderMapper;
+import app.mapper.SmartphoneMapper;
 import app.models.Order;
 import app.service.OrderService;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
+
+import app.service.SmartphoneService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,19 +31,46 @@ public class OrderController {
 
     private final OrderService orderService;
     private final OrderMapper orderMapper;
+    private final SmartphoneService smartphoneService;
+    private final SmartphoneMapper smartphoneMapper;
 
     @Autowired
-    public OrderController(OrderService orderService, OrderMapper orderMapper) {
+    public OrderController(OrderService orderService, OrderMapper orderMapper,
+                           SmartphoneService smartphoneService, SmartphoneMapper smartphoneMapper) {
         this.orderService = orderService;
         this.orderMapper = orderMapper;
+        this.smartphoneService = smartphoneService;
+        this.smartphoneMapper = smartphoneMapper;
     }
 
     @GetMapping
-    public ResponseEntity<List<OrderDto>> getAllOrders() {
+    public ResponseEntity<List<Map<String, Object>>> getAllOrders() {
         List<Order> orders = orderService.getAllOrders();
-        List<OrderDto> dtos = orders.stream().map(orderMapper::toDto).collect(Collectors.toList());
-        return ResponseEntity.ok(dtos);
+
+        List<OrderDto> orderDtos = orders.stream()
+                .map(orderMapper::toDto)
+                .collect(Collectors.toList());
+
+        List<Map<String, Object>> response = orderDtos.stream().map(orderDto -> {
+            Map<String, Object> orderMap = new LinkedHashMap<>();
+            orderMap.put("id", orderDto.getId());
+            orderMap.put("userId", orderDto.getUserId());
+            orderMap.put("orderDate", orderDto.getOrderDate());
+            orderMap.put("totalAmount", orderDto.getTotalAmount());
+            // Преобразуем список ID в список SmartphoneDTO
+            List<SmartphoneDto> smartphones = orderDto.getSmartphoneIds().stream()
+                    .map(id -> smartphoneService.getSmartphoneById(id)
+                            .map(smartphoneMapper::toDto)
+                            .orElse(null))
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+            orderMap.put("smartphones", smartphones);
+            return orderMap;
+        }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(response);
     }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<OrderDto> getOrderById(@PathVariable Long id) {
