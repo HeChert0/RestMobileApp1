@@ -2,10 +2,12 @@ package app.service;
 
 import app.dao.SmartphoneRepository;
 import app.models.Smartphone;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 
 @Service
 public class SmartphoneService {
@@ -41,4 +43,13 @@ public class SmartphoneService {
     public void deleteSmartphone(Long id) {
         smartphoneRepository.deleteById(id);
     }
+
+    public List<Smartphone> filterSmartphones(String brand, String model, Double price) {
+        return smartphoneRepository.findAll().stream()
+                .filter(s -> brand == null || s.getBrand().equalsIgnoreCase(brand))
+                .filter(s -> model == null || s.getModel().equalsIgnoreCase(model))
+                .filter(s -> price == null || s.getPrice().equals(price))
+                .collect(Collectors.toList());
+    }
+
 }

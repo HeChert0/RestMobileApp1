@@ -18,8 +18,8 @@ public interface OrderMapper extends BaseMapper<Order, OrderDto> {
     @Mappings({
             @Mapping(target = "id", ignore = true),
             @Mapping(target = "user", source = "userId", qualifiedByName = "userFromId"),
-            @Mapping(target = "orderDate", source = "orderDate"),
             @Mapping(target = "totalAmount", source = "totalAmount"),
+            @Mapping(target = "orderDate", source = "orderDate"),
             @Mapping(target = "smartphones", ignore = true)
     })
     @Override
@@ -33,8 +33,8 @@ public interface OrderMapper extends BaseMapper<Order, OrderDto> {
                             " new ArrayList<>() : " +
                             "order.getSmartphones().stream().map(app.models.Smartphone::getId)" +
                             ".collect(java.util.stream.Collectors.toList()))"),
+            @Mapping(target = "totalAmount", source = "totalAmount"),
             @Mapping(target = "orderDate", source = "orderDate"),
-            @Mapping(target = "totalAmount", source = "totalAmount")
     })
     @Override
     OrderDto toDto(Order order);
@@ -43,7 +43,9 @@ public interface OrderMapper extends BaseMapper<Order, OrderDto> {
 
     @Named("userFromId")
     default User userFromId(Long id) {
-        if (id == null) return null;
+        if (id == null) {
+            return null;
+        }
         User user = new User();
         try {
             java.lang.reflect.Field idField = User.class.getDeclaredField("id");

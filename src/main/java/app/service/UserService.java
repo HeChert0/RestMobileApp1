@@ -41,6 +41,7 @@ public class UserService implements UserDetailsService {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
+
     public User saveUser(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
@@ -49,11 +50,11 @@ public class UserService implements UserDetailsService {
     public User updateUser(Long id, User updatedUser) {
         return userRepository.findById(id).map(existingUser -> {
             existingUser.setUsername(updatedUser.getUsername());
-            // Если передан новый пароль, обновляем его
+
             if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
                 existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
             }
-            // Здесь можно обновлять и другие поля, если требуется
+
             return userRepository.save(existingUser);
         }).orElse(null);
     }

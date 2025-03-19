@@ -1,6 +1,7 @@
 package app.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.util.List;
@@ -12,16 +13,17 @@ public class OrderDto {
     @NotNull(message = "User ID cannot be null")
     private Long userId;
 
-    @NotNull(message = "Total amount cannot be null")
     private Double totalAmount;
 
     private LocalDate orderDate;
 
+    @NotEmpty(message = "Order must contain at least one smartphone")
     private List<Long> smartphoneIds;
 
     public Long getId() {
         return id;
     }
+
     public void setId(Long id) {
         this.id = id;
     }
@@ -34,13 +36,6 @@ public class OrderDto {
         this.userId = userId;
     }
 
-    public Double getTotalAmount() {
-        return totalAmount;
-    }
-
-    public void setTotalAmount(Double totalAmount) {
-        this.totalAmount = totalAmount;
-    }
 
     public LocalDate getOrderDate() {
         return orderDate;
@@ -53,7 +48,16 @@ public class OrderDto {
     public List<Long> getSmartphoneIds() {
         return smartphoneIds;
     }
+
     public void setSmartphoneIds(List<Long> smartphoneIds) {
         this.smartphoneIds = smartphoneIds;
+    }
+
+    public Double getTotalAmount() {
+        return totalAmount;
+    }
+
+    public void setTotalAmount(Double totalAmount) {
+        this.totalAmount = totalAmount;
     }
 }
