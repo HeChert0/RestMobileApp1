@@ -6,13 +6,12 @@ import app.mapper.OrderMapper;
 import app.mapper.SmartphoneMapper;
 import app.models.Order;
 import app.service.OrderService;
+import app.service.SmartphoneService;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
-import app.service.SmartphoneService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -44,33 +43,11 @@ public class OrderController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Map<String, Object>>> getAllOrders() {
+    public ResponseEntity<List<OrderDto>> getAllOrders() {
         List<Order> orders = orderService.getAllOrders();
-
-        List<OrderDto> orderDtos = orders.stream()
-                .map(orderMapper::toDto)
-                .collect(Collectors.toList());
-
-        List<Map<String, Object>> response = orderDtos.stream().map(orderDto -> {
-            Map<String, Object> orderMap = new LinkedHashMap<>();
-            orderMap.put("id", orderDto.getId());
-            orderMap.put("userId", orderDto.getUserId());
-            orderMap.put("orderDate", orderDto.getOrderDate());
-            orderMap.put("totalAmount", orderDto.getTotalAmount());
-            // Преобразуем список ID в список SmartphoneDTO
-            List<SmartphoneDto> smartphones = orderDto.getSmartphoneIds().stream()
-                    .map(id -> smartphoneService.getSmartphoneById(id)
-                            .map(smartphoneMapper::toDto)
-                            .orElse(null))
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
-            orderMap.put("smartphones", smartphones);
-            return orderMap;
-        }).collect(Collectors.toList());
-
-        return ResponseEntity.ok(response);
+        List<OrderDto> dtos = orderMapper.toDtos(orders);
+        return ResponseEntity.ok(dtos);
     }
-
 
     @GetMapping("/{id}")
     public ResponseEntity<OrderDto> getOrderById(@PathVariable Long id) {

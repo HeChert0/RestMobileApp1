@@ -1,14 +1,16 @@
 package app.mapper;
 
 import app.dto.OrderDto;
+import app.dto.SmartphoneDto;
 import app.models.Order;
 import app.models.Smartphone;
 import app.models.User;
+
+import java.util.ArrayList;
 import java.util.List;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Mappings;
-import org.mapstruct.Named;
+import java.util.stream.Collectors;
+
+import org.mapstruct.*;
 
 
 @Mapper(componentModel = "spring")
@@ -35,6 +37,7 @@ public interface OrderMapper extends BaseMapper<Order, OrderDto> {
                             ".collect(java.util.stream.Collectors.toList()))"),
             @Mapping(target = "totalAmount", source = "totalAmount"),
             @Mapping(target = "orderDate", source = "orderDate"),
+            @Mapping(target = "smartphones", ignore = true)
     })
     @Override
     OrderDto toDto(Order order);
@@ -54,9 +57,22 @@ public interface OrderMapper extends BaseMapper<Order, OrderDto> {
         } catch (Exception e) {
             //Logger logger = LoggerFactory.getLogger(OrderMapper.class);
             //logger.error("Ошибка при установке поля id в объекте User", e);
-            // Проброс unchecked исключения для дальнейшей обработки контроллером
             throw new RuntimeException("Ошибка при маппинге user id", e);
         }
         return user;
+    }
+
+    @AfterMapping
+    default void fillSmartphones(@MappingTarget OrderDto dto, Order order) {
+
+        if (order.getSmartphones() != null) {
+            List<SmartphoneDto> smartphones = order.getSmartphones().stream()
+                    .map(s -> org.mapstruct.factory.Mappers
+                            .getMapper(SmartphoneMapper.class).toDto(s))
+                    .collect(Collectors.toList());
+            dto.setSmartphones(smartphones);
+        } else {
+            dto.setSmartphones(new ArrayList<>());
+        }
     }
 }

@@ -1,6 +1,8 @@
 package app.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
@@ -18,7 +20,18 @@ public class OrderDto {
     private LocalDate orderDate;
 
     @NotEmpty(message = "Order must contain at least one smartphone")
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private List<Long> smartphoneIds;
+
+    public List<SmartphoneDto> getSmartphones() {
+        return smartphones;
+    }
+
+    public void setSmartphones(List<SmartphoneDto> smartphones) {
+        this.smartphones = smartphones;
+    }
+
+    private List<SmartphoneDto> smartphones;
 
     public Long getId() {
         return id;

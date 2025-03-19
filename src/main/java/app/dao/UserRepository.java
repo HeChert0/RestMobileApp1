@@ -10,10 +10,6 @@ import org.springframework.stereotype.Repository;
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUsername(String name);
 
-    @EntityGraph(attributePaths = {"smartphones"},
-            value = "User.withSmartphones", type = EntityGraph.EntityGraphType.LOAD)
-    Optional<User> findWithSmartphonesById(Long id);
-
     @EntityGraph(attributePaths = {"orders"})
     Optional<User> findWithOrdersById(Long id);
 }

@@ -1,5 +1,6 @@
 package app.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -16,7 +17,10 @@ public class UserDto {
     @NotBlank(message = "Password cannot be blank")
     private String password;
 
+    @JsonIgnore
     private List<Long> orderIds;
+
+    private List<OrderDto> orders;
 
     public UserDto() {
     }
@@ -58,5 +62,13 @@ public class UserDto {
 
     public void setOrderIds(List<Long> orderIds) {
         this.orderIds = orderIds;
+    }
+
+    public List<OrderDto> getOrders() {
+        return orders;
+    }
+
+    public void setOrders(List<OrderDto> orders) {
+        this.orders = orders;
     }
 }

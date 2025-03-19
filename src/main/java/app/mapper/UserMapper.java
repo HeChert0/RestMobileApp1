@@ -1,10 +1,15 @@
 package app.mapper;
 
+import app.dto.OrderDto;
+import app.dto.SmartphoneDto;
 import app.dto.UserDto;
+import app.models.Order;
 import app.models.User;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Mappings;
+import org.mapstruct.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper extends BaseMapper<User, UserDto> {
@@ -24,8 +29,23 @@ public interface UserMapper extends BaseMapper<User, UserDto> {
             expression = "java(user.getOrders() == null ?"
                     + " new java.util.ArrayList<>() : "
                     + "user.getOrders().stream().map(o ->"
-                    + " o.getId()).collect(java.util.stream.Collectors.toList()))")
+                    + " o.getId()).collect(java.util.stream.Collectors.toList()))"),
+               @Mapping(target = "orders", ignore = true)
     })
     @Override
     UserDto toDto(User user);
+
+    @AfterMapping
+    default void fillOrders(@MappingTarget UserDto dto, User user) {
+
+        if (user.getOrders() != null) {
+            List<OrderDto> orders = user.getOrders().stream()
+                    .map(o -> org.mapstruct.factory.Mappers
+                            .getMapper(OrderMapper.class).toDto(o))
+                    .collect(Collectors.toList());
+            dto.setOrders(orders);
+        } else {
+            dto.setOrders(new ArrayList<>());
+        }
+    }
 }
