@@ -4,7 +4,8 @@ import app.cache.InMemoryCache;
 import app.dao.OrderRepository;
 import app.dao.SmartphoneRepository;
 import app.dao.UserRepository;
-import app.dto.OrderDto;
+import app.exception.OrderNotFoundException;
+import app.exception.UserNotFoundException;
 import app.mapper.OrderMapper;
 import app.models.Order;
 import app.models.Smartphone;
@@ -99,36 +100,44 @@ public class OrderService {
 
         Order savedOrder = orderRepository.save(order);
         orderCache.put(savedOrder.getId(), savedOrder);
-        return orderRepository.save(order);
+        return savedOrder;
     }
 
     @Transactional
     public Order updateOrder(Long id, Order updatedOrder, List<Long> smartphoneIds) {
-        return orderRepository.findById(id).map(existingOrder -> {
-            existingOrder.setOrderDate(updatedOrder.getOrderDate() != null
-                    ? updatedOrder.getOrderDate()
-                    : LocalDate.now());
-            existingOrder.setUser(updatedOrder.getUser());
+        Order existingOrder = orderRepository.findById(id)
+                .orElseThrow(() -> new OrderNotFoundException("Order with id " + id + " not found."));
 
-            if (smartphoneIds == null || smartphoneIds.isEmpty()) {
-                orderRepository.delete(existingOrder);
-                return null;
-            } else {
-                List<Smartphone> phones = smartphoneIds.stream()
-                        .map(sid -> smartphoneRepository.findById(sid)
-                                .orElseThrow(() -> new IllegalArgumentException(
-                                        "Smartphone with id " + sid + " not found.")))
-                        .collect(Collectors.toList());
-                existingOrder.setSmartphones(phones);
-                double total = phones.stream().mapToDouble(Smartphone::getPrice).sum();
-                existingOrder.setTotalAmount(total);
-            }
+        existingOrder.setOrderDate(updatedOrder.getOrderDate() != null
+                ? updatedOrder.getOrderDate() : LocalDate.now());
 
-            Order savedOrder = orderRepository.save(existingOrder);
-            orderCache.update(savedOrder.getId(), savedOrder);
-            return orderRepository.save(existingOrder);
-        }).orElseThrow(() -> new IllegalArgumentException("Order with id " + id + " not found."));
+        if (updatedOrder.getUser() != null) {
+            User user = userRepository.findById(updatedOrder.getUser().getId())
+                    .orElseThrow(() -> new UserNotFoundException("User with id " + updatedOrder.getUser().getId() + " not found."));
+            existingOrder.setUser(user);
+        }
+
+        if (smartphoneIds == null || smartphoneIds.isEmpty()) {
+            orderRepository.delete(existingOrder);
+            orderCache.remove(existingOrder.getId());
+            return null;
+        } else {
+            List<Smartphone> phones = smartphoneIds.stream()
+                    .map(sid -> smartphoneRepository.findById(sid)
+                            .orElseThrow(() -> new IllegalArgumentException("Smartphone with id " + sid + " not found.")))
+                    .collect(Collectors.toList());
+            existingOrder.setSmartphones(phones);
+            double total = phones.stream().mapToDouble(Smartphone::getPrice).sum();
+            existingOrder.setTotalAmount(total);
+        }
+
+        Order savedOrder = orderRepository.save(existingOrder);
+        orderCache.update(savedOrder.getId(), savedOrder);
+        return savedOrder;
     }
+
+
+
 
     @Transactional
     public void deleteOrder(Long id) {
@@ -143,5 +152,15 @@ public class OrderService {
 
         orderRepository.deleteById(id);
         orderCache.remove(id);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Order> getOrdersByUserUsernameJpql(String username) {
+        return orderRepository.findByUserUsernameJpql(username);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Order> getOrdersByUserUsernameNative(String username) {
+        return orderRepository.findByUserUsernameNative(username);
     }
 }

@@ -77,7 +77,7 @@ public class SmartphoneController {
             @RequestParam(required = false) String brand,
             @RequestParam(required = false) String model,
             @RequestParam(required = false) Double price) {
-        // Вызываем метод сервиса, который фильтрует смартфоны
+
         List<Smartphone> filtered = smartphoneService.filterSmartphones(brand, model, price);
         List<SmartphoneDto> dtos = filtered.stream()
                 .map(smartphoneMapper::toDto)
