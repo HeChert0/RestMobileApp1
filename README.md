@@ -1,3 +1,4 @@
+```markdown
 # MobileApp
 
 ## Описание
@@ -56,3 +57,133 @@
 
 ## Структура проекта
 
+```
+MobileApp
+├── src
+│   ├── main
+│   │   ├── java
+│   │   │   └── app
+│   │   │       ├── MobileApplication.java          # Главный класс Spring Boot
+│   │   │       ├── aspect                          # Аспекты логирования (LoggingAspect.java)
+│   │   │       ├── cache                           # In-memory кэш (InMemoryCache.java)
+│   │   │       ├── config                          # Конфигурация (SecurityConfig, SwaggerConfig)
+│   │   │       ├── controller                      # REST-контроллеры (SmartphoneController.java, OrderController.java, UserController.java, LogController.java)
+│   │   │       ├── dao                             # Репозитории (JpaRepository интерфейсы)
+│   │   │       ├── dto                             # DTO-классы (UserDto, SmartphoneDto, OrderDto)
+│   │   │       ├── entities (или models)           # JPA-сущности (Smartphone.java, Order.java, User.java)
+│   │   │       ├── mapper                          # MapStruct мапперы (BaseMapper.java, SmartphoneMapper.java, OrderMapper.java, UserMapper.java)
+│   │   │       └── service                         # Сервисный слой (SmartphoneService.java, OrderService.java, UserService.java)
+│   │   └── resources
+│   │       ├── application.properties              # Настройки Spring Boot, БД, логирования, swagger и т.д.
+├── pom.xml
+└── README.md
+```
+
+---
+
+## Установка и запуск
+
+### 1. Клонирование репозитория
+```sh
+git clone https://github.com/HeChert0/RestMobileApp1
+cd MobileApp
+```
+
+### 2. Настройка базы данных
+В файле `application.properties` укажите параметры подключения к MySQL:
+```properties
+spring.datasource.url=jdbc:mysql://localhost:3306/smartphones_db
+spring.datasource.username=YOUR_USERNAME
+spring.datasource.password=YOUR_PASSWORD
+spring.jpa.hibernate.ddl-auto=update
+```
+Создайте базу данных `smartphones_db` (либо настройте автоматическое создание).
+
+### 3. Сборка и запуск
+```sh
+mvn spring-boot:run
+```
+Приложение запустится на `http://localhost:8081` (или другой порт, если указан).
+
+### 4. Проверка Swagger
+Откройте в браузере:  
+```
+http://localhost:8081/swagger-ui/index.html
+```
+Здесь вы увидите интерактивную документацию API с описаниями всех endpoint’ов.
+
+### 5. Проверка логирования и кэша
+- Логи записываются в файл `app.log` (путь настраивается в `application.properties`).
+- Для получения логов по дате используйте endpoint:  
+  ```
+  GET /logs?date=2025-03-19
+  ```
+  или для скачивания:  
+  ```
+  GET /logs/download?date=2025-03-19
+  ```
+
+---
+
+## Примеры запросов для тестирования
+
+### **Пользователи**
+- Создание:  
+  `POST /users`  
+  ```json
+  {
+    "username": "JohnDoe",
+    "password": "secret123",
+    "orderIds": []
+  }
+  ```
+- Получение:  
+  `GET /users`
+
+### **Смартфоны**
+- Создание:  
+  `POST /phones`  
+  ```json
+  {
+    "brand": "Samsung",
+    "model": "Galaxy S21",
+    "price": 799.99
+  }
+  ```
+- Фильтрация:  
+  `GET /phones/filter?brand=Apple&model=iPhone 13`
+
+### **Заказы**
+- Создание:  
+  `POST /orders`  
+  ```json
+  {
+    "userId": 1,
+    "smartphoneIds": [3, 6, 6]
+  }
+  ```
+  (totalAmount вычисляется автоматически как сумма цен, учитывая повторы)
+- Обновление:  
+  `PUT /orders/{id}`  
+  Если передан пустой список smartphoneIds, заказ удаляется и возвращается статус 204.
+- Фильтрация заказов по username (JPQL/native):  
+  `GET /orders/filter?username=Alice`  
+  или  
+  `GET /orders/filter?username=Alice&nativeQuery=true`
+
+### **Логи**
+- Получение логов за определенную дату:  
+  `GET /logs?date=2025-03-19`
+
+---
+
+## Swagger и логирование: краткое пояснение
+
+**Swagger (OpenAPI)** – это инструмент для документирования REST API. Он автоматически генерирует интерактивную документацию, позволяя разработчикам и клиентам:
+- Просматривать все endpoint’ы, их параметры и схемы ответов.
+- Тестировать запросы прямо из браузера.
+- Облегчать интеграцию и поддержку API.
+
+**Логирование через аспекты** – позволяет централизованно регистрировать входы, выходы и ошибки во всех методах приложения. Логи записываются в файл, что помогает анализировать работу системы и отлаживать ошибки.
+
+---
