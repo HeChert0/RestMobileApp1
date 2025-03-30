@@ -1,6 +1,5 @@
 package app.service;
 
-import app.cache.InMemoryCache;
 import app.dao.UserRepository;
 import app.models.Order;
 import app.models.User;
@@ -20,38 +19,21 @@ public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final InMemoryCache<Long, User> userCache;
 
     @Autowired
     public UserService(UserRepository userRepository,
-                       PasswordEncoder passwordEncoder,
-                       InMemoryCache<Long, User> orderCache) {
+                       PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-        this.userCache = orderCache;
     }
 
     public List<User> getAllUsers() {
         long dbCount = userRepository.count();
-        int cacheSize = userCache.size();
-
-        if (cacheSize == dbCount && cacheSize > 0) {
-            return userCache.getAllValues();
-        } else {
-            List<User> users = userRepository.findAll();
-            users.forEach(u -> userCache.put(u.getId(), u));
-            return users;
-        }
+        return userRepository.findAll();
     }
 
     public Optional<User> getUserById(Long id) {
-        User cachedUser = userCache.get(id);
-        if (cachedUser != null) {
-            return Optional.of(cachedUser);
-        }
-        Optional<User> user = userRepository.findById(id);
-        user.ifPresent(u -> userCache.put(u.getId(), u));
-        return user;
+        return userRepository.findById(id);
     }
 
     public Optional<User> getUserDetails(Long id) {
@@ -68,7 +50,6 @@ public class UserService implements UserDetailsService {
     public User saveUser(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         User savedUser = userRepository.save(user);
-        userCache.put(savedUser.getId(), savedUser);
         return savedUser;
     }
 
@@ -81,16 +62,13 @@ public class UserService implements UserDetailsService {
                 existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
             }
 
-            User savedUser = userRepository.save(existingUser);
-            userCache.update(savedUser.getId(), savedUser);
-            return savedUser;
+            return userRepository.save(existingUser);
         }).orElse(null);
     }
 
     @Transactional
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
-        userCache.remove(id);
     }
 }
 

@@ -5,12 +5,15 @@ import app.dto.SmartphoneDto;
 import app.models.Order;
 import app.models.Smartphone;
 import app.models.User;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import org.mapstruct.*;
+import org.mapstruct.AfterMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.Mappings;
+import org.mapstruct.Named;
 
 
 @Mapper(componentModel = "spring")

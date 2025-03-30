@@ -1,14 +1,16 @@
 package app.cache;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
 
-@Component
-@Scope("prototype")
 public class InMemoryCache<K, V> {
 
     private static final Logger logger = LoggerFactory.getLogger(InMemoryCache.class);

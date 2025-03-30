@@ -5,11 +5,15 @@ import app.dto.SmartphoneDto;
 import app.dto.UserDto;
 import app.models.Order;
 import app.models.User;
-import org.mapstruct.*;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.mapstruct.AfterMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.Mappings;
+
 
 @Mapper(componentModel = "spring")
 public interface UserMapper extends BaseMapper<User, UserDto> {

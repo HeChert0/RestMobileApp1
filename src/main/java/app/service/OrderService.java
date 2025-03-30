@@ -11,10 +11,10 @@ import app.models.Order;
 import app.models.Smartphone;
 import app.models.User;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,131 +28,114 @@ public class OrderService {
     private final SmartphoneRepository smartphoneRepository;
     private final OrderMapper orderMapper;
     private final UserRepository userRepository;
-    private final InMemoryCache<Long, Order> orderCache;
 
     @Autowired
     public OrderService(OrderRepository orderRepository,
                         SmartphoneRepository smartphoneRepository,
                         OrderMapper orderMapper,
-                        UserRepository userRepository,
-                        InMemoryCache<Long, Order> orderCache) {
+                        UserRepository userRepository) {
         this.orderRepository = orderRepository;
         this.smartphoneRepository = smartphoneRepository;
         this.orderMapper = orderMapper;
         this.userRepository = userRepository;
-        this.orderCache = orderCache;
     }
 
     @SneakyThrows
     @Transactional(readOnly = true)
     public List<Order> getAllOrders() {
         long dbCount = orderRepository.count();
-        int cacheSize = orderCache.size();
-
-        if (cacheSize == dbCount && cacheSize > 0) {
-            return orderCache.getAllValues();
-        } else {
-            Thread.sleep(2000);
-            List<Order> orders = orderRepository.findAll();
-            orders.forEach(order -> orderCache.put(order.getId(), order));
-            return orders;
-        }
+        return orderRepository.findAll();
     }
 
 
     public Optional<Order> getOrderById(Long id) {
-        Order cachedOrder = orderCache.get(id);
-        if (cachedOrder != null) {
-            return Optional.of(cachedOrder);
-        }
-        Optional<Order> order = orderRepository.findById(id);
-        order.ifPresent(o -> orderCache.put(o.getId(), o));
-        return order;
+        return orderRepository.findById(id);
     }
 
     @Transactional
     public Order createOrder(Order order, List<Long> smartphoneIds) {
+
+        if (order.getUser() == null || order.getUser().getId() == null) {
+            throw new IllegalArgumentException(
+                    "Order must be associated with a user (userId must be provided).");
+        }
         User user = userRepository.findById(order.getUser().getId())
                 .orElseThrow(() -> new IllegalArgumentException(
                         "User with ID " + order.getUser().getId() + " not found"));
-
         if (smartphoneIds == null || smartphoneIds.isEmpty()) {
             throw new IllegalArgumentException("Order must contain at least one smartphone.");
         }
-
         List<Smartphone> phones = smartphoneIds.stream()
                 .map(id -> smartphoneRepository.findById(id)
                         .orElseThrow(() -> new IllegalArgumentException(
                                 "Smartphone with id " + id + " not found.")))
                 .collect(Collectors.toList());
-
+        order.setUser(user);
         order.setSmartphones(phones);
         double total = phones.stream().mapToDouble(Smartphone::getPrice).sum();
         order.setTotalAmount(total);
-
         if (order.getOrderDate() == null) {
             order.setOrderDate(LocalDate.now());
         }
-
-        if (order.getUser() == null) {
-            throw new IllegalArgumentException("Order must be associated with a user.");
-        }
-
         Order savedOrder = orderRepository.save(order);
-        orderCache.put(savedOrder.getId(), savedOrder);
+
+        updateUserCacheForOrder(savedOrder.getUser().getId());
         return savedOrder;
     }
 
     @Transactional
     public Order updateOrder(Long id, Order updatedOrder, List<Long> smartphoneIds) {
         Order existingOrder = orderRepository.findById(id)
-                .orElseThrow(() -> new OrderNotFoundException("Order with id " + id + " not found."));
-
+                .orElseThrow(() -> new OrderNotFoundException(
+                        "Order with id " + id + " not found."));
         existingOrder.setOrderDate(updatedOrder.getOrderDate() != null
                 ? updatedOrder.getOrderDate() : LocalDate.now());
-
-        if (updatedOrder.getUser() != null) {
-            User user = userRepository.findById(updatedOrder.getUser().getId())
-                    .orElseThrow(() -> new UserNotFoundException("User with id " + updatedOrder.getUser().getId() + " not found."));
-            existingOrder.setUser(user);
+        if (updatedOrder.getUser() == null || updatedOrder.getUser().getId() == null) {
+            throw new IllegalArgumentException(
+                    "Order must be associated with a user (userId must be provided).");
         }
-
+        User user = userRepository.findById(updatedOrder.getUser().getId())
+                .orElseThrow(() -> new UserNotFoundException(
+                        "User with id " + updatedOrder.getUser().getId() + " not found."));
+        existingOrder.setUser(user);
         if (smartphoneIds == null || smartphoneIds.isEmpty()) {
             orderRepository.delete(existingOrder);
-            orderCache.remove(existingOrder.getId());
+
+            updateUserCacheForOrder(user.getId());
             return null;
         } else {
             List<Smartphone> phones = smartphoneIds.stream()
                     .map(sid -> smartphoneRepository.findById(sid)
-                            .orElseThrow(() -> new IllegalArgumentException("Smartphone with id " + sid + " not found.")))
+                            .orElseThrow(() -> new IllegalArgumentException(
+                                    "Smartphone with id " + sid + " not found.")))
                     .collect(Collectors.toList());
             existingOrder.setSmartphones(phones);
             double total = phones.stream().mapToDouble(Smartphone::getPrice).sum();
             existingOrder.setTotalAmount(total);
         }
-
         Order savedOrder = orderRepository.save(existingOrder);
-        orderCache.update(savedOrder.getId(), savedOrder);
+
+        updateUserCacheForOrder(savedOrder.getUser().getId());
         return savedOrder;
     }
 
-
-
-
     @Transactional
     public void deleteOrder(Long id) {
-        orderRepository.findById(id).ifPresent(order -> {
-            if (order.getUser() != null) {
-                User user = order.getUser();
-                user.getOrders().remove(order);
-                userRepository.save(user);
-            }
+        Optional<Order> orderOpt = orderRepository.findById(id);
+        if (orderOpt.isPresent()) {
+            Order order = orderOpt.get();
+            Long userId = order.getUser().getId();
             orderRepository.delete(order);
-        });
 
-        orderRepository.deleteById(id);
-        orderCache.remove(id);
+            updateUserCacheForOrder(userId);
+        }
     }
+
+    private void updateUserCacheForOrder(Long userId) {
+        Optional<User> userOpt = userRepository.findWithOrdersById(userId);
+    }
+
+
 
     @Transactional(readOnly = true)
     public List<Order> getOrdersByUserUsernameJpql(String username) {
@@ -162,5 +145,18 @@ public class OrderService {
     @Transactional(readOnly = true)
     public List<Order> getOrdersByUserUsernameNative(String username) {
         return orderRepository.findByUserUsernameNative(username);
+    }
+
+    @Transactional
+    public void updateOrdersTotalBySmartphone(Smartphone smartphone) {
+        List<Order> orders = new ArrayList<>(smartphone.getOrders());
+
+        for (Order order : orders) {
+            double newTotal = order.getSmartphones().stream()
+                    .mapToDouble(Smartphone::getPrice)
+                    .sum();
+            order.setTotalAmount(newTotal);
+            orderRepository.save(order);
+        }
     }
 }

@@ -2,7 +2,10 @@ package app.aspect;
 
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.*;
+import org.aspectj.lang.annotation.AfterThrowing;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Pointcut;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -19,10 +22,12 @@ public class LoggingAspect {
 
     @Around("applicationPackagePointcut()")
     public Object logAround(ProceedingJoinPoint joinPoint) throws Throwable {
-        logger.info("Entering: {} with arguments = {}", joinPoint.getSignature().toShortString(), joinPoint.getArgs());
+        logger.info("Entering: {} with arguments = {}",
+                joinPoint.getSignature().toShortString(), joinPoint.getArgs());
         try {
             Object result = joinPoint.proceed();
-            logger.info("Exiting: {} with result = {}", joinPoint.getSignature().toShortString(), result);
+            logger.info("Exiting: {} with result = {}",
+                    joinPoint.getSignature().toShortString(), result);
             return result;
         } catch (IllegalArgumentException e) {
             logger.error("Illegal argument: {} in {}",

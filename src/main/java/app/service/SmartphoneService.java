@@ -1,6 +1,7 @@
 package app.service;
 
 import app.cache.InMemoryCache;
+import app.dao.OrderRepository;
 import app.dao.SmartphoneRepository;
 import app.models.Order;
 import app.models.Smartphone;
@@ -16,75 +17,71 @@ import org.springframework.transaction.annotation.Transactional;
 public class SmartphoneService {
 
     private final SmartphoneRepository smartphoneRepository;
-    private final InMemoryCache<Long, Smartphone> smartphoneCache;
+    private final OrderRepository orderRepository;
+    private final OrderService orderService;
 
     @Autowired
     public SmartphoneService(SmartphoneRepository smartphoneRepository,
-                             InMemoryCache<Long, Smartphone> smartphoneCache) {
+                             OrderRepository orderRepository,
+                             OrderService orderService) {
         this.smartphoneRepository = smartphoneRepository;
-        this.smartphoneCache = smartphoneCache;
+        this.orderRepository = orderRepository;
+        this.orderService = orderService;
     }
 
     public List<Smartphone> getAllSmartphones() {
         long dbCount = smartphoneRepository.count();
-        int cacheSize = smartphoneCache.size();
-
-        if (cacheSize == dbCount && cacheSize > 0) {
-            return smartphoneCache.getAllValues();
-        } else {
-            List<Smartphone> smartphones = smartphoneRepository.findAll();
-            smartphones.forEach(s -> smartphoneCache.put(s.getId(), s));
-            return smartphones;
-        }
+        return smartphoneRepository.findAll();
     }
 
     public Optional<Smartphone> getSmartphoneById(Long id) {
-        Smartphone cachedSmartphone = smartphoneCache.get(id);
-        if (cachedSmartphone != null) {
-            return Optional.of(cachedSmartphone);
-        }
-        Optional<Smartphone> smartphone = smartphoneRepository.findById(id);
-        smartphone.ifPresent(s -> smartphoneCache.put(s.getId(), s));
-        return smartphone;
+        return smartphoneRepository.findById(id);
     }
 
     @Transactional
     public Smartphone saveSmartphone(Smartphone smartphone) {
-        Smartphone savedSmartphone = smartphoneRepository.save(smartphone);
-        smartphoneCache.put(savedSmartphone.getId(), savedSmartphone);
-        return savedSmartphone;
+        return smartphoneRepository.save(smartphone);
     }
 
+    @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
     @Transactional
     public Smartphone updateSmartphone(Long id, Smartphone updatedSmartphone) {
         return smartphoneRepository.findById(id).map(existingSmartphone -> {
+            double oldPrice = existingSmartphone.getPrice();
             existingSmartphone.setBrand(updatedSmartphone.getBrand());
             existingSmartphone.setModel(updatedSmartphone.getModel());
             existingSmartphone.setPrice(updatedSmartphone.getPrice());
 
+
             Smartphone savedSmartphone = smartphoneRepository.save(existingSmartphone);
-            smartphoneCache.put(savedSmartphone.getId(), savedSmartphone);
+
+            if (oldPrice != savedSmartphone.getPrice()) {
+                orderService.updateOrdersTotalBySmartphone(savedSmartphone);
+            }
+
             return savedSmartphone;
         }).orElse(null);
     }
 
     @Transactional
     public void deleteSmartphone(Long id) {
-        smartphoneRepository.deleteById(id);
-        smartphoneCache.remove(id);
+        Smartphone phone = smartphoneRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Smartphone with id " + id + " not found."));
+
+        orderRepository.deleteOrderSmartphoneLinks(id);
+
+        smartphoneRepository.flush();
+
+        smartphoneRepository.delete(phone);
     }
+
 
     public List<Smartphone> filterSmartphones(String brand, String model, Double price) {
         long dbCount = smartphoneRepository.count();
-        int cacheSize = smartphoneCache.size();
 
         List<Smartphone> smartphones;
-        if (cacheSize == dbCount && cacheSize > 0) {
-            smartphones =  smartphoneCache.getAllValues();
-        } else {
-            smartphones = smartphoneRepository.findAll();
-            smartphones.forEach(s -> smartphoneCache.put(s.getId(), s));
-        }
+        smartphones = smartphoneRepository.findAll();
 
         return smartphones.stream()
                 .filter(s -> brand == null || s.getBrand().equalsIgnoreCase(brand))
