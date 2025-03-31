@@ -7,6 +7,9 @@ import app.mapper.SmartphoneMapper;
 import app.models.Order;
 import app.service.OrderService;
 import app.service.SmartphoneService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +44,11 @@ public class OrderController {
         this.smartphoneMapper = smartphoneMapper;
     }
 
+    @Operation(summary = "Get all orders", description = "Retrieves a list of all orders and caches each order individually")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Orders retrieved successfully"),
+        @ApiResponse(responseCode = "400", description = "Bad request")
+    })
     @GetMapping
     public ResponseEntity<List<OrderDto>> getAllOrders() {
         List<Order> orders = orderService.getAllOrders();
@@ -48,6 +56,12 @@ public class OrderController {
         return ResponseEntity.ok(dtos);
     }
 
+
+    @Operation(summary = "Get order by ID", description = "Retrieves a single order by its ID using cache if available")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Order found"),
+        @ApiResponse(responseCode = "404", description = "Order not found")
+    })
     @GetMapping("/{id}")
     public ResponseEntity<OrderDto> getOrderById(@PathVariable Long id) {
         return orderService.getOrderById(id)
@@ -56,6 +70,16 @@ public class OrderController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @Operation(
+            summary = "Create order",
+            description = "Creates a new order using the provided OrderDto. "
+                    + "The order is created with a list of smartphone IDs,"
+                    + " and then cached accordingly."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Order created successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid order data provided")
+    })
     @PostMapping
     public ResponseEntity<OrderDto> createOrder(@RequestBody OrderDto orderDto) {
         Order order = orderMapper.toEntity(orderDto);
@@ -63,6 +87,19 @@ public class OrderController {
         return ResponseEntity.ok(orderMapper.toDto(savedOrder));
     }
 
+    @Operation(
+            summary = "Update order",
+            description = "Updates an existing order identified by ID using the provided OrderDto."
+                    + "If the provided list of smartphone IDs is empty,"
+                    + " the order is deleted and a NO_CONTENT response "
+                    + "with additional header information is returned."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Order updated successfully"),
+        @ApiResponse(responseCode = "204", description = "Order deleted because no smartphones were provided"),
+        @ApiResponse(responseCode = "400", description = "Invalid order data provided"),
+        @ApiResponse(responseCode = "404", description = "Order not found")
+    })
     @PutMapping("/{id}")
     public ResponseEntity<OrderDto> updateOrder(@PathVariable Long id,
                                                 @RequestBody OrderDto orderDto) {
@@ -76,13 +113,31 @@ public class OrderController {
         return ResponseEntity.ok(orderMapper.toDto(updatedOrder));
     }
 
-
+    @Operation(
+            summary = "Delete order",
+            description = "Deletes the order identified by the provided ID"
+                    + " and updates the related caches accordingly."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Order deleted successfully"),
+        @ApiResponse(responseCode = "404", description = "Order not found")
+    })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
         orderService.deleteOrder(id);
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(
+            summary = "Get orders by username",
+            description = "Retrieves a list of orders for a given username. "
+                    + "Allows switching between JPQL and native query"
+                    + " by setting the nativeQuery parameter."
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Orders retrieved successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid request parameters")
+    })
     @GetMapping("/filter")
     public ResponseEntity<List<OrderDto>> getOrdersByUsername(
             @RequestParam String username,

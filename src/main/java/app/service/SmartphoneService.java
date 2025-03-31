@@ -41,13 +41,22 @@ public class SmartphoneService {
     }
 
     public Optional<Smartphone> getSmartphoneById(Long id) {
-        return smartphoneRepository.findById(id);
+        Smartphone cachedPhone = smartphoneCache.get(id);
+        if (cachedPhone != null) {
+            return Optional.of(cachedPhone);
+        }
+        Optional<Smartphone> phoneOpt = smartphoneRepository.findById(id);
+        phoneOpt.ifPresent(phone -> smartphoneCache.put(phone.getId(), phone));
+        return phoneOpt;
     }
 
     @Transactional
     public Smartphone saveSmartphone(Smartphone smartphone) {
-        return smartphoneRepository.save(smartphone);
+        Smartphone savedSmartphone = smartphoneRepository.save(smartphone);
+        smartphoneCache.put(savedSmartphone.getId(), savedSmartphone);
+        return savedSmartphone;
     }
+
 
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
     @Transactional

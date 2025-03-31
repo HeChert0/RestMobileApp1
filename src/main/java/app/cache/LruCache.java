@@ -4,8 +4,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class LruCache<K, V> {
+    private final Logger logger = LoggerFactory.getLogger(LruCache.class);
     private final Lock lock = new ReentrantLock();
     private final int capacity;
     private final Map<K, Node<K, V>> cache;
@@ -30,14 +33,21 @@ public class LruCache<K, V> {
         }
         this.capacity = capacity;
         this.cache = new HashMap<>();
+        logger.info("Initialized LruCache with capacity {}", capacity);
     }
 
     public V get(K key) {
         lock.lock();
         try {
+            size();
+
             Node<K, V> node = cache.get(key);
-            if (node == null) return null;
+            if (node == null) {
+                logger.debug("Cache miss for key {}", key);
+                return null;
+            }
             moveToHead(node);
+            logger.debug("Cache hit for key {}. Returning value: {}", key, node.value);
             return node.value;
         } finally {
             lock.unlock();
@@ -47,15 +57,20 @@ public class LruCache<K, V> {
     public void put(K key, V value) {
         lock.lock();
         try {
+            size();
+
             Node<K, V> node = cache.get(key);
             if (node != null) {
                 node.value = value;
                 moveToHead(node);
+                logger.debug("Updated existing key {} with new value {}", key, value);
             } else {
                 node = new Node<>(key, value);
                 cache.put(key, node);
                 addToHead(node);
+                logger.debug("Inserted key {} with value {}", key, value);
                 if (cache.size() > capacity) {
+                    logger.debug("Cache capacity exceeded. Removing tail element.");
                     removeTail();
                 }
             }
@@ -68,8 +83,12 @@ public class LruCache<K, V> {
         lock.lock();
         try {
             Node<K, V> node = cache.remove(key);
-            if (node == null) return null;
+            if (node == null) {
+                logger.debug("Attempted to remove key {} but it was not found", key);
+                return null;
+            }
             removeNode(node);
+            logger.debug("Removed key {} with value {}", key, node.value);
             return node.value;
         } finally {
             lock.unlock();
@@ -79,36 +98,55 @@ public class LruCache<K, V> {
     public int size() {
         lock.lock();
         try {
-            return cache.size();
+            int size = cache.size();
+            logger.debug("Current cache size: {}", size);
+            return size;
         } finally {
             lock.unlock();
         }
     }
 
     private void moveToHead(Node<K, V> node) {
-        if (node == head) return;
+        if (node == head) {
+            return;
+        }
         removeNode(node);
         addToHead(node);
+        logger.debug("Moved key {} to head", node.key);
     }
 
     private void addToHead(Node<K, V> node) {
         node.prev = null;
         node.next = head;
-        if (head != null) head.prev = node;
+        if (head != null) {
+            head.prev = node;
+        }
         head = node;
-        if (tail == null) tail = head;
+        if (tail == null) {
+            tail = head;
+        }
+        logger.debug("Added key {} to head", node.key);
     }
 
     private void removeNode(Node<K, V> node) {
-        if (node.prev != null) node.prev.next = node.next;
-        else head = node.next;
-
-        if (node.next != null) node.next.prev = node.prev;
-        else tail = node.prev;
+        if (node.prev != null) {
+            node.prev.next = node.next;
+        } else {
+            head = node.next;
+        }
+        if (node.next != null) {
+            node.next.prev = node.prev;
+        } else {
+            tail = node.prev;
+        }
+        logger.debug("Removed node with key {}", node.key);
     }
 
     private void removeTail() {
-        if (tail == null) return;
+        if (tail == null) {
+            return;
+        }
+        logger.debug("Removing tail key {} from cache", tail.key);
         cache.remove(tail.key);
         removeNode(tail);
     }

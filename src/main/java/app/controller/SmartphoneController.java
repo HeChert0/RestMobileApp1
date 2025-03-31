@@ -4,6 +4,9 @@ import app.dto.SmartphoneDto;
 import app.mapper.SmartphoneMapper;
 import app.models.Smartphone;
 import app.service.SmartphoneService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,6 +37,12 @@ public class SmartphoneController {
         this.smartphoneMapper = smartphoneMapper;
     }
 
+    @Operation(summary = "Get all smartphones",
+            description = "Retrieves a list of all smartphones and caches each one individually")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Smartphones retrieved successfully"),
+        @ApiResponse(responseCode = "400", description = "Bad request")
+    })
     @GetMapping
     public ResponseEntity<List<SmartphoneDto>> getAllSmartphones() {
         List<Smartphone> phones = smartphoneService.getAllSmartphones();
@@ -42,6 +51,12 @@ public class SmartphoneController {
         return ResponseEntity.ok(dtos);
     }
 
+    @Operation(summary = "Get smartphone by ID",
+            description = "Retrieves a single smartphone by its ID using cache if available")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Smartphone found"),
+        @ApiResponse(responseCode = "404", description = "Smartphone not found")
+    })
     @GetMapping("/{id}")
     public ResponseEntity<SmartphoneDto> getSmartphoneById(@PathVariable Long id) {
         return smartphoneService.getSmartphoneById(id)
@@ -50,6 +65,12 @@ public class SmartphoneController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @Operation(summary = "Create a new smartphone",
+            description = "Creates a new smartphone and caches it")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Smartphone created successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid input data")
+    })
     @PostMapping
     public ResponseEntity<SmartphoneDto> createSmartphone(
             @RequestBody @Valid SmartphoneDto smartphoneDto) {
@@ -58,6 +79,13 @@ public class SmartphoneController {
         return ResponseEntity.ok(smartphoneMapper.toDto(savedPhone));
     }
 
+    @Operation(summary = "Update a smartphone",
+            description = "Updates an existing smartphone and updates its cache")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Smartphone updated successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid input data"),
+        @ApiResponse(responseCode = "404", description = "Smartphone not found")
+    })
     @PutMapping("/{id}")
     public ResponseEntity<SmartphoneDto> updateSmartphone(
             @PathVariable Long id, @RequestBody @Valid SmartphoneDto smartphoneDto) {
@@ -66,12 +94,27 @@ public class SmartphoneController {
         return ResponseEntity.ok(smartphoneMapper.toDto(updatedPhone));
     }
 
+    @Operation(summary = "Delete a smartphone",
+            description = "Deletes a smartphone and updates the cache accordingly")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Smartphone deleted successfully"),
+        @ApiResponse(responseCode = "404", description = "Smartphone not found")
+    })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteSmartphone(@PathVariable Long id) {
         smartphoneService.deleteSmartphone(id);
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(
+            summary = "Filter smartphones",
+            description = "Retrieves a list of smartphones filtered by optional parameters:"
+                    + " brand, model and price. "
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Smartphones filtered successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid filter parameters")
+    })
     @GetMapping("/filter")
     public ResponseEntity<List<SmartphoneDto>> filterSmartphones(
             @RequestParam(required = false) String brand,

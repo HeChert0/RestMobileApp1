@@ -1,5 +1,8 @@
 package app.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -26,6 +29,12 @@ public class LogController {
     @Value("${logging.file.name}")
     private String logFilePath;
 
+    @Operation(summary = "Get logs by date", description = "Retrieves logs for a specified date (format yyyy-MM-dd)")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Logs retrieved successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid date format"),
+        @ApiResponse(responseCode = "500", description = "Error reading log file")
+    })
     @GetMapping
     public ResponseEntity<?> getLogsByDate(@RequestParam String date) {
         try {
@@ -43,6 +52,12 @@ public class LogController {
         }
     }
 
+    @Operation(summary = "Download logs by date", description = "Downloads logs for a specified date as a text file")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Log file downloaded successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid date format"),
+        @ApiResponse(responseCode = "500", description = "Error reading log file")
+    })
     @GetMapping("/download")
     public ResponseEntity<Resource> downloadLogs(@RequestParam String date) {
         try {

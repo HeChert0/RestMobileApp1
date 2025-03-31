@@ -4,6 +4,9 @@ import app.dto.UserDto;
 import app.mapper.UserMapper;
 import app.models.User;
 import app.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,6 +36,11 @@ public class UserController {
         this.userMapper = userMapper;
     }
 
+    @Operation(summary = "Get all users", description = "Retrieves a list of all users and caches each one individually")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Users retrieved successfully"),
+        @ApiResponse(responseCode = "400", description = "Bad request")
+    })
     @GetMapping
     public ResponseEntity<List<UserDto>> getAllUsers() {
         List<User> users = userService.getAllUsers();
@@ -40,6 +48,11 @@ public class UserController {
         return ResponseEntity.ok(dtos);
     }
 
+    @Operation(summary = "Get user by ID", description = "Retrieves a single user by its ID using cache if available")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "User found"),
+        @ApiResponse(responseCode = "404", description = "User not found")
+    })
     @GetMapping("/{id}")
     public ResponseEntity<UserDto> getUserById(@PathVariable Long id) {
         return userService.getUserById(id)
@@ -48,6 +61,11 @@ public class UserController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @Operation(summary = "Get user details", description = "Retrieves detailed user information (including orders) by user ID")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "User details retrieved successfully"),
+        @ApiResponse(responseCode = "404", description = "User not found")
+    })
     @GetMapping("/{id}/details")
     public ResponseEntity<UserDto> getUserDetails(@PathVariable Long id) {
         return userService.getUserDetails(id)
@@ -56,6 +74,12 @@ public class UserController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @Operation(summary = "Create a new user", description = "Creates a new user and caches it")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "User created successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid input data"),
+        @ApiResponse(responseCode = "409", description = "User with given username already exists")
+    })
     @PostMapping
     public ResponseEntity<UserDto> createUser(@RequestBody @Valid UserDto userDto) {
         User user = userMapper.toEntity(userDto);
@@ -63,6 +87,12 @@ public class UserController {
         return ResponseEntity.ok(userMapper.toDto(savedUser));
     }
 
+    @Operation(summary = "Update user", description = "Updates an existing user and updates its cache")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "User updated successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid input data"),
+        @ApiResponse(responseCode = "404", description = "User not found")
+    })
     @PutMapping("/{id}")
     public ResponseEntity<UserDto> updateUser(
             @PathVariable Long id, @RequestBody @Valid UserDto userDto) {
@@ -75,6 +105,11 @@ public class UserController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @Operation(summary = "Delete user", description = "Deletes a user and updates the cache accordingly")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "User deleted successfully"),
+        @ApiResponse(responseCode = "404", description = "User not found")
+    })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);

@@ -38,7 +38,7 @@ public class GlobalExceptionHandler {
                 .body("Пользователь с таким именем уже существует.");
     }
 
-    // Обработка ConstraintViolationException, выбрасываемого на этапе persist
+    // на этапе persist
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<Map<String, String>> handleConstraintViolationException(
             ConstraintViolationException ex) {

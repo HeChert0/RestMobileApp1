@@ -52,7 +52,13 @@ public class OrderService {
 
 
     public Optional<Order> getOrderById(Long id) {
-        return orderRepository.findById(id);
+        Order cachedOrder = orderCache.get(id);
+        if (cachedOrder != null) {
+            return Optional.of(cachedOrder);
+        }
+        Optional<Order> orderOpt = orderRepository.findById(id);
+        orderOpt.ifPresent(order -> orderCache.put(order.getId(), order));
+        return orderOpt;
     }
 
     @Transactional
@@ -157,32 +163,17 @@ public class OrderService {
         }
     }
 
-    //    private void updateUserCacheForOrder(Long userId) {
-    //        Optional<User> userOpt = userRepository.findWithOrdersById(userId);
-    //    }
-
-
-
     @Transactional(readOnly = true)
     public List<Order> getOrdersByUserUsernameJpql(String username) {
-        return orderRepository.findByUserUsernameJpql(username);
+        List<Order> orders = orderRepository.findByUserUsernameJpql(username);
+        orders.forEach(order -> orderCache.put(order.getId(), order));
+        return orders;
     }
 
     @Transactional(readOnly = true)
     public List<Order> getOrdersByUserUsernameNative(String username) {
-        return orderRepository.findByUserUsernameNative(username);
-    }
-
-    @Transactional
-    public void updateOrdersTotalBySmartphone(Smartphone smartphone) {
-        List<Order> orders = new ArrayList<>(smartphone.getOrders());
-
-        for (Order order : orders) {
-            double newTotal = order.getSmartphones().stream()
-                    .mapToDouble(Smartphone::getPrice)
-                    .sum();
-            order.setTotalAmount(newTotal);
-            orderRepository.save(order);
-        }
+        List<Order> orders = orderRepository.findByUserUsernameNative(username);
+        orders.forEach(order -> orderCache.put(order.getId(), order));
+        return orders;
     }
 }
