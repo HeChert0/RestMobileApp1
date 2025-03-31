@@ -1,5 +1,6 @@
 package app.service;
 
+import app.cache.LruCache;
 import app.dao.UserRepository;
 import app.models.Order;
 import app.models.User;
@@ -19,12 +20,14 @@ public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final LruCache<Long, User> userCache;
 
     @Autowired
     public UserService(UserRepository userRepository,
-                       PasswordEncoder passwordEncoder) {
+                       PasswordEncoder passwordEncoder, LruCache<Long, User> userCache) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.userCache = userCache;
     }
 
     public List<User> getAllUsers() {
@@ -32,12 +35,23 @@ public class UserService implements UserDetailsService {
         return userRepository.findAll();
     }
 
+
     public Optional<User> getUserById(Long id) {
-        return userRepository.findById(id);
+        User cachedUser = userCache.get(id);
+        if (cachedUser != null) {
+            return Optional.of(cachedUser);
+        }
+        Optional<User> userOpt = userRepository.findById(id);
+        userOpt.ifPresent(user -> userCache.put(id, user));
+        return userOpt;
     }
 
     public Optional<User> getUserDetails(Long id) {
-        return userRepository.findWithOrdersById(id);
+        return userRepository.findWithOrdersById(id)
+                .map(user -> {
+                    userCache.put(user.getId(), user);
+                    return user;
+                });
     }
 
     @Override
@@ -50,6 +64,7 @@ public class UserService implements UserDetailsService {
     public User saveUser(User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         User savedUser = userRepository.save(user);
+        userCache.put(savedUser.getId(), savedUser);
         return savedUser;
     }
 
@@ -57,18 +72,19 @@ public class UserService implements UserDetailsService {
     public User updateUser(Long id, User updatedUser) {
         return userRepository.findById(id).map(existingUser -> {
             existingUser.setUsername(updatedUser.getUsername());
-
             if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
                 existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
             }
-
-            return userRepository.save(existingUser);
+            User savedUser = userRepository.save(existingUser);
+            userCache.put(savedUser.getId(), savedUser);
+            return savedUser;
         }).orElse(null);
     }
 
     @Transactional
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
+        userCache.remove(id);
     }
 }
 

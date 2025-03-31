@@ -1,0 +1,115 @@
+package app.cache;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+public class LruCache<K, V> {
+    private final Lock lock = new ReentrantLock();
+    private final int capacity;
+    private final Map<K, Node<K, V>> cache;
+    private Node<K, V> head;
+    private Node<K, V> tail;
+
+    private static class Node<K, V> {
+        K key;
+        V value;
+        Node<K, V> prev;
+        Node<K, V> next;
+
+        Node(K key, V value) {
+            this.key = key;
+            this.value = value;
+        }
+    }
+
+    public LruCache(int capacity) {
+        if (capacity <= 0) {
+            throw new IllegalArgumentException("Capacity must be greater than zero.");
+        }
+        this.capacity = capacity;
+        this.cache = new HashMap<>();
+    }
+
+    public V get(K key) {
+        lock.lock();
+        try {
+            Node<K, V> node = cache.get(key);
+            if (node == null) return null;
+            moveToHead(node);
+            return node.value;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public void put(K key, V value) {
+        lock.lock();
+        try {
+            Node<K, V> node = cache.get(key);
+            if (node != null) {
+                node.value = value;
+                moveToHead(node);
+            } else {
+                node = new Node<>(key, value);
+                cache.put(key, node);
+                addToHead(node);
+                if (cache.size() > capacity) {
+                    removeTail();
+                }
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public V remove(K key) {
+        lock.lock();
+        try {
+            Node<K, V> node = cache.remove(key);
+            if (node == null) return null;
+            removeNode(node);
+            return node.value;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public int size() {
+        lock.lock();
+        try {
+            return cache.size();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void moveToHead(Node<K, V> node) {
+        if (node == head) return;
+        removeNode(node);
+        addToHead(node);
+    }
+
+    private void addToHead(Node<K, V> node) {
+        node.prev = null;
+        node.next = head;
+        if (head != null) head.prev = node;
+        head = node;
+        if (tail == null) tail = head;
+    }
+
+    private void removeNode(Node<K, V> node) {
+        if (node.prev != null) node.prev.next = node.next;
+        else head = node.next;
+
+        if (node.next != null) node.next.prev = node.prev;
+        else tail = node.prev;
+    }
+
+    private void removeTail() {
+        if (tail == null) return;
+        cache.remove(tail.key);
+        removeNode(tail);
+    }
+}

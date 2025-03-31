@@ -16,8 +16,8 @@ public class LoggingAspect {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    // Логируем вход и выход из всех методов в пакетах controller, service, dao
-    @Pointcut("within(app.controller..*) || within(app.service..*) || within(app.dao..*)")
+    @Pointcut("within(app.controller..*) || within(app.service..*)"
+            + " || within(app.dao..*) || within(app.cache.LruCache)")
     public void applicationPackagePointcut() {}
 
     @Around("applicationPackagePointcut()")
@@ -36,7 +36,6 @@ public class LoggingAspect {
         }
     }
 
-    // Логируем исключения
     @AfterThrowing(pointcut = "applicationPackagePointcut()", throwing = "error")
     public void logAfterThrowing(JoinPoint joinPoint, Throwable error) {
         logger.error("Exception in {} with cause = {}", joinPoint.getSignature().toShortString(),

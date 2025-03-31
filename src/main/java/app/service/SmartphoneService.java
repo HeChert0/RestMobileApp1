@@ -1,6 +1,6 @@
 package app.service;
 
-import app.cache.InMemoryCache;
+import app.cache.LruCache;
 import app.dao.OrderRepository;
 import app.dao.SmartphoneRepository;
 import app.models.Order;
@@ -19,14 +19,20 @@ public class SmartphoneService {
     private final SmartphoneRepository smartphoneRepository;
     private final OrderRepository orderRepository;
     private final OrderService orderService;
+    private final LruCache<Long, Smartphone> smartphoneCache;
+    private final LruCache<Long, Order> orderCache;
+    private final LruCache<Long, app.models.User> userCache;
 
     @Autowired
     public SmartphoneService(SmartphoneRepository smartphoneRepository,
                              OrderRepository orderRepository,
-                             OrderService orderService) {
+                             OrderService orderService, LruCache<Long, Smartphone> smartphoneCache, LruCache<Long, Order> orderCache, LruCache<Long, app.models.User> userCache) {
         this.smartphoneRepository = smartphoneRepository;
         this.orderRepository = orderRepository;
         this.orderService = orderService;
+        this.smartphoneCache = smartphoneCache;
+        this.orderCache = orderCache;
+        this.userCache = userCache;
     }
 
     public List<Smartphone> getAllSmartphones() {
@@ -52,11 +58,32 @@ public class SmartphoneService {
             existingSmartphone.setModel(updatedSmartphone.getModel());
             existingSmartphone.setPrice(updatedSmartphone.getPrice());
 
-
             Smartphone savedSmartphone = smartphoneRepository.save(existingSmartphone);
+            smartphoneCache.put(savedSmartphone.getId(), savedSmartphone);
 
             if (oldPrice != savedSmartphone.getPrice()) {
-                orderService.updateOrdersTotalBySmartphone(savedSmartphone);
+                List<Order> orders = orderRepository.findAll();
+                orders.forEach(order -> {
+                    boolean containsPhone = order.getSmartphones().stream()
+                            .anyMatch(p -> p.getId().equals(savedSmartphone.getId()));
+                    if (containsPhone) {
+                        double newTotal = order.getSmartphones().stream()
+                                .mapToDouble(p -> p.getId().equals(savedSmartphone.getId())
+                                        ? savedSmartphone.getPrice()
+                                        : p.getPrice())
+                                .sum();
+                        order.setTotalAmount(newTotal);
+                        orderRepository.save(order);
+                        orderCache.put(order.getId(), order);
+
+                        app.models.User user = userCache.get(order.getUser().getId());
+                        if (user != null) {
+                            user.getOrders().removeIf(o -> o.getId().equals(order.getId()));
+                            user.getOrders().add(order);
+                            userCache.put(user.getId(), user);
+                        }
+                    }
+                });
             }
 
             return savedSmartphone;
@@ -66,14 +93,29 @@ public class SmartphoneService {
     @Transactional
     public void deleteSmartphone(Long id) {
         Smartphone phone = smartphoneRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Smartphone with id " + id + " not found."));
-
-        orderRepository.deleteOrderSmartphoneLinks(id);
-
+                .orElseThrow(() -> new IllegalArgumentException("Smartphone with id " + id + " not found."));
+        // Для каждого заказа удаляем ссылки на данный телефон
+        List<Order> orders = orderRepository.findAll();
+        orders.forEach(order -> {
+            if (order.getSmartphones().removeIf(p -> p.getId().equals(id))) {
+                double newTotal = order.getSmartphones().stream()
+                        .mapToDouble(p -> p.getPrice())
+                        .sum();
+                order.setTotalAmount(newTotal);
+                orderRepository.save(order);
+                orderCache.put(order.getId(), order);
+                // Обновляем кэш пользователя
+                app.models.User user = userCache.get(order.getUser().getId());
+                if (user != null) {
+                    user.getOrders().removeIf(o -> o.getId().equals(order.getId()));
+                    user.getOrders().add(order);
+                    userCache.put(user.getId(), user);
+                }
+            }
+        });
         smartphoneRepository.flush();
-
         smartphoneRepository.delete(phone);
+        smartphoneCache.remove(id);
     }
 
 

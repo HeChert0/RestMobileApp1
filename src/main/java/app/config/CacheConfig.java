@@ -1,6 +1,6 @@
 package app.config;
 
-import app.cache.InMemoryCache;
+import app.cache.LruCache;
 import app.models.Order;
 import app.models.Smartphone;
 import app.models.User;
@@ -11,17 +11,17 @@ import org.springframework.context.annotation.Configuration;
 public class CacheConfig {
 
     @Bean
-    public InMemoryCache<Long, Smartphone> smartphoneCache() {
-        return new InMemoryCache<>();
+    public LruCache<Long, Smartphone> smartphoneCache() {
+        return new LruCache<>(5);
     }
 
     @Bean
-    public InMemoryCache<Long, Order> orderCache() {
-        return new InMemoryCache<>();
+    public LruCache<Long, Order> orderCache() {
+        return new LruCache<>(5);
     }
 
     @Bean
-    public InMemoryCache<Long, User> userCache() {
-        return new InMemoryCache<>();
+    public LruCache<Long, User> userCache() {
+        return new LruCache<>(5);
     }
 }

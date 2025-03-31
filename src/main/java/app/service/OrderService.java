@@ -1,6 +1,6 @@
 package app.service;
 
-import app.cache.InMemoryCache;
+import app.cache.LruCache;
 import app.dao.OrderRepository;
 import app.dao.SmartphoneRepository;
 import app.dao.UserRepository;
@@ -26,17 +26,20 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final SmartphoneRepository smartphoneRepository;
-    private final OrderMapper orderMapper;
+    private final LruCache<Long, Order> orderCache;
+    private final LruCache<Long, User> userCache;
     private final UserRepository userRepository;
 
     @Autowired
     public OrderService(OrderRepository orderRepository,
                         SmartphoneRepository smartphoneRepository,
-                        OrderMapper orderMapper,
+                        LruCache<Long, Order> orderCache,
+                        LruCache<Long, User> userCache,
                         UserRepository userRepository) {
         this.orderRepository = orderRepository;
         this.smartphoneRepository = smartphoneRepository;
-        this.orderMapper = orderMapper;
+        this.orderCache = orderCache;
+        this.userCache = userCache;
         this.userRepository = userRepository;
     }
 
@@ -70,16 +73,24 @@ public class OrderService {
                         .orElseThrow(() -> new IllegalArgumentException(
                                 "Smartphone with id " + id + " not found.")))
                 .collect(Collectors.toList());
+
         order.setUser(user);
         order.setSmartphones(phones);
+
         double total = phones.stream().mapToDouble(Smartphone::getPrice).sum();
         order.setTotalAmount(total);
+
         if (order.getOrderDate() == null) {
             order.setOrderDate(LocalDate.now());
         }
         Order savedOrder = orderRepository.save(order);
 
-        updateUserCacheForOrder(savedOrder.getUser().getId());
+        orderCache.put(savedOrder.getId(), savedOrder);
+        User cachedUser = userCache.get(user.getId());
+        if (cachedUser != null) {
+            cachedUser.getOrders().add(savedOrder);
+            userCache.put(user.getId(), cachedUser);
+        }
         return savedOrder;
     }
 
@@ -98,10 +109,15 @@ public class OrderService {
                 .orElseThrow(() -> new UserNotFoundException(
                         "User with id " + updatedOrder.getUser().getId() + " not found."));
         existingOrder.setUser(user);
+
         if (smartphoneIds == null || smartphoneIds.isEmpty()) {
             orderRepository.delete(existingOrder);
-
-            updateUserCacheForOrder(user.getId());
+            orderCache.remove(id);
+            User cachedUser = userCache.get(user.getId());
+            if (cachedUser != null) {
+                cachedUser.getOrders().removeIf(o -> o.getId().equals(id));
+                userCache.put(user.getId(), cachedUser);
+            }
             return null;
         } else {
             List<Smartphone> phones = smartphoneIds.stream()
@@ -114,8 +130,13 @@ public class OrderService {
             existingOrder.setTotalAmount(total);
         }
         Order savedOrder = orderRepository.save(existingOrder);
-
-        updateUserCacheForOrder(savedOrder.getUser().getId());
+        orderCache.put(savedOrder.getId(), savedOrder);
+        User cachedUser = userCache.get(savedOrder.getUser().getId());
+        if (cachedUser != null) {
+            cachedUser.getOrders().removeIf(o -> o.getId().equals(savedOrder.getId()));
+            cachedUser.getOrders().add(savedOrder);
+            userCache.put(savedOrder.getUser().getId(), cachedUser);
+        }
         return savedOrder;
     }
 
@@ -125,15 +146,20 @@ public class OrderService {
         if (orderOpt.isPresent()) {
             Order order = orderOpt.get();
             Long userId = order.getUser().getId();
-            orderRepository.delete(order);
 
-            updateUserCacheForOrder(userId);
+            orderRepository.delete(order);
+            orderCache.remove(id);
+            User cachedUser = userCache.get(userId);
+            if (cachedUser != null) {
+                cachedUser.getOrders().removeIf(o -> o.getId().equals(id));
+                userCache.put(userId, cachedUser);
+            }
         }
     }
 
-    private void updateUserCacheForOrder(Long userId) {
-        Optional<User> userOpt = userRepository.findWithOrdersById(userId);
-    }
+    //    private void updateUserCacheForOrder(Long userId) {
+    //        Optional<User> userOpt = userRepository.findWithOrdersById(userId);
+    //    }
 
 
 
