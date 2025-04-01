@@ -128,16 +128,12 @@ public class SmartphoneService {
     }
 
 
-    public List<Smartphone> filterSmartphones(String brand, String model, Double price) {
-        long dbCount = smartphoneRepository.count();
-
-        List<Smartphone> smartphones;
-        smartphones = smartphoneRepository.findAll();
-
-        return smartphones.stream()
-                .filter(s -> brand == null || s.getBrand().equalsIgnoreCase(brand))
-                .filter(s -> model == null || s.getModel().equalsIgnoreCase(model))
-                .filter(s -> price == null || s.getPrice().equals(price))
-                .collect(Collectors.toList());
+    @Transactional(readOnly = true)
+    public List<Smartphone> filterSmartphones(String brand, String model, Double price, boolean nativeQuery) {
+        if (nativeQuery) {
+            return smartphoneRepository.filterSmartphonesNative(brand, model, price);
+        } else {
+            return smartphoneRepository.filterSmartphonesJPQL(brand, model, price);
+        }
     }
 }

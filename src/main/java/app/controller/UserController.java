@@ -8,19 +8,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
+
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.web.bind.annotation.*;
 
 
 @RestController
@@ -115,4 +109,33 @@ public class UserController {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
+
+    @SuppressWarnings({"checkstyle:OperatorWrap", "checkstyle:Indentation"})
+    @Operation(
+            summary = "Get users by order and smartphone criteria",
+            description = "Retrieves users having at least one order"
+                    + " with totalAmount >= minTotal and/or "
+                    + "having at least one smartphone with the specified brand in their orders "
+                    + " or/and  with OrderDate = date. "
+                    + "Set nativeQuery=true to use native SQL query."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Users retrieved successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid filter parameters")
+    })
+    @GetMapping("/filterByOrder")
+    public ResponseEntity<List<UserDto>> getUsersByOrderCriteria(
+            @RequestParam(required = false) Double minTotal,
+            @RequestParam(required = false) String phoneBrand,
+            @RequestParam(required = false) LocalDate date,
+            @RequestParam(defaultValue = "false") boolean nativeQuery) {
+
+        List<User> users = userService.getUsersByOrderAndPhoneCriteria(minTotal,
+                phoneBrand, date, nativeQuery);
+        List<UserDto> dtos = users.stream()
+                .map(userMapper::toDto)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(dtos);
+    }
+
 }

@@ -58,8 +58,6 @@ public interface OrderMapper extends BaseMapper<Order, OrderDto> {
             idField.setAccessible(true);
             idField.set(user, id);
         } catch (Exception e) {
-            //Logger logger = LoggerFactory.getLogger(OrderMapper.class);
-            //logger.error("Ошибка при установке поля id в объекте User", e);
             throw new RuntimeException("Ошибка при маппинге user id", e);
         }
         return user;

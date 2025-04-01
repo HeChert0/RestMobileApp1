@@ -155,4 +155,33 @@ public class OrderController {
                 .collect(Collectors.toList());
         return ResponseEntity.ok(dtos);
     }
+
+
+    @SuppressWarnings("checkstyle:Indentation")
+    @Operation(
+            summary = "Get orders by smartphone criteria",
+            description = "Retrieves orders that contain at least"
+                    + " one smartphone matching the specified criteria: "
+                    + "brand, model, minPrice, and maxPrice. "
+                    + "Set nativeQuery=true to use native SQL query."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Orders retrieved successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid filter parameters")
+    })
+    @GetMapping("/filterByPhone")
+    public ResponseEntity<List<OrderDto>> getOrdersBySmartphoneCriteria(
+            @RequestParam(required = false) String brand,
+            @RequestParam(required = false) String model,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice,
+            @RequestParam(defaultValue = "false") boolean nativeQuery) {
+
+        List<Order> orders = orderService.getOrdersBySmartphoneCriteria(brand, model,
+                minPrice, maxPrice, nativeQuery);
+        List<OrderDto> dtos = orders.stream()
+                .map(orderMapper::toDto)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(dtos);
+    }
 }

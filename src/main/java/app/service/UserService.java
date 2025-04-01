@@ -4,6 +4,7 @@ import app.cache.LruCache;
 import app.dao.UserRepository;
 import app.models.Order;
 import app.models.User;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,6 +86,21 @@ public class UserService implements UserDetailsService {
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
         userCache.remove(id);
+    }
+
+    public List<User> getUsersByOrderAndPhoneCriteria(Double minTotal, String phoneBrand,
+                                                      LocalDate date, boolean nativeQuery) {
+        if (nativeQuery) {
+            List<User> users = userRepository
+                    .findUsersByOrderAndPhoneCriteriaNative(minTotal, phoneBrand, date);
+            users.forEach(u -> userCache.put(u.getId(), u));
+            return users;
+        } else {
+            List<User> users =  userRepository
+                    .findUsersByOrderAndPhoneCriteriaJpql(minTotal, phoneBrand, date);
+            users.forEach(u -> userCache.put(u.getId(), u));
+            return users;
+        }
     }
 }
 

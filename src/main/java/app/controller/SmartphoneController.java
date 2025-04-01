@@ -108,8 +108,9 @@ public class SmartphoneController {
 
     @Operation(
             summary = "Filter smartphones",
-            description = "Retrieves a list of smartphones filtered by optional parameters:"
-                    + " brand, model and price. "
+            description = "Retrieves a list of smartphones filtered by"
+                    + " optional parameters: brand, model and price. "
+                    + "Set nativeQuery=true to use a native SQL query; otherwise JPQL is used."
     )
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Smartphones filtered successfully"),
@@ -119,9 +120,11 @@ public class SmartphoneController {
     public ResponseEntity<List<SmartphoneDto>> filterSmartphones(
             @RequestParam(required = false) String brand,
             @RequestParam(required = false) String model,
-            @RequestParam(required = false) Double price) {
+            @RequestParam(required = false) Double price,
+            @RequestParam(defaultValue = "false") boolean nativeQuery) {
 
-        List<Smartphone> filtered = smartphoneService.filterSmartphones(brand, model, price);
+        List<Smartphone> filtered = smartphoneService.filterSmartphones(brand,
+                model, price, nativeQuery);
         List<SmartphoneDto> dtos = filtered.stream()
                 .map(smartphoneMapper::toDto)
                 .collect(Collectors.toList());

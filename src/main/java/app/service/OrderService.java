@@ -176,4 +176,20 @@ public class OrderService {
         orders.forEach(order -> orderCache.put(order.getId(), order));
         return orders;
     }
+
+    public List<Order> getOrdersBySmartphoneCriteria(String brand, String model,
+                                                     Double minPrice, Double maxPrice,
+                                                     boolean nativeQuery) {
+        if (nativeQuery) {
+            List<Order> orders =  orderRepository
+                    .findOrdersBySmartphoneCriteriaNative(brand, model, minPrice, maxPrice);
+            orders.forEach(order -> orderCache.put(order.getId(), order));
+            return orders;
+        } else {
+            List<Order> orders =  orderRepository
+                    .findOrdersBySmartphoneCriteriaJpql(brand, model, minPrice, maxPrice);
+            orders.forEach(order -> orderCache.put(order.getId(), order));
+            return orders;
+        }
+    }
 }
