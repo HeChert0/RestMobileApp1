@@ -2,6 +2,7 @@ package app.service;
 
 import app.cache.LruCache;
 import app.dao.UserRepository;
+import app.exception.UserNotFoundException;
 import app.models.Order;
 import app.models.User;
 import java.time.LocalDate;
@@ -84,7 +85,10 @@ public class UserService implements UserDetailsService {
 
     @Transactional
     public void deleteUser(Long id) {
-        userRepository.deleteById(id);
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("User with id " + id + " not found"));
+
+        userRepository.delete(user);
         userCache.remove(id);
     }
 

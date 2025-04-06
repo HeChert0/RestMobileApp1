@@ -160,6 +160,8 @@ public class OrderService {
                 cachedUser.getOrders().removeIf(o -> o.getId().equals(id));
                 userCache.put(userId, cachedUser);
             }
+        } else {
+            throw new OrderNotFoundException("Order with id " + id + " not found.");
         }
     }
 

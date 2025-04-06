@@ -29,19 +29,27 @@ public class LogController {
     @Value("${logging.file.name}")
     private String logFilePath;
 
-    @Operation(summary = "Get logs by date", description = "Retrieves logs for a specified date (format yyyy-MM-dd)")
+    @Operation(summary = "Get logs by date", description = "Retrieves logs for a"
+            + " specified date (format yyyy-MM-dd)."
+            + " If no date is provided, all logs are returned.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Logs retrieved successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid date format"),
         @ApiResponse(responseCode = "500", description = "Error reading log file")
     })
     @GetMapping
-    public ResponseEntity<?> getLogsByDate(@RequestParam String date) {
+    public ResponseEntity<?> getLogsByDate(@RequestParam(required = false) String date) {
         try {
-            LocalDate requestedDate = LocalDate.parse(date);
             List<String> lines = Files.lines(Paths.get(logFilePath))
-                    .filter(line -> line.contains(requestedDate.toString()))
                     .collect(Collectors.toList());
+
+            if (date != null && !date.isEmpty()) {
+                LocalDate requestedDate = LocalDate.parse(date);
+                lines = lines.stream()
+                        .filter(line -> line.contains(requestedDate.toString()))
+                        .collect(Collectors.toList());
+            }
+
             return ResponseEntity.ok(lines);
         } catch (DateTimeParseException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -52,26 +60,34 @@ public class LogController {
         }
     }
 
-    @Operation(summary = "Download logs by date", description = "Downloads logs for a specified date as a text file")
+    @Operation(summary = "Download logs by date", description = "Downloads logs"
+            + " for a specified date as a text file."
+            + " If no date is provided, the entire log file is downloaded.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Log file downloaded successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid date format"),
         @ApiResponse(responseCode = "500", description = "Error reading log file")
     })
     @GetMapping("/download")
-    public ResponseEntity<Resource> downloadLogs(@RequestParam String date) {
+    public ResponseEntity<Resource> downloadLogs(@RequestParam(required = false) String date) {
         try {
-            LocalDate requestedDate = LocalDate.parse(date);
-
             List<String> lines = Files.lines(Paths.get(logFilePath))
-                    .filter(line -> line.contains(requestedDate.toString()))
                     .collect(Collectors.toList());
+
+            if (date != null && !date.isEmpty()) {
+                LocalDate requestedDate = LocalDate.parse(date);
+                lines = lines.stream()
+                        .filter(line -> line.contains(requestedDate.toString()))
+                        .collect(Collectors.toList());
+            }
 
             String content = String.join(System.lineSeparator(), lines);
             ByteArrayResource resource = new ByteArrayResource(content.getBytes());
+            String filename = (date != null && !date.isEmpty())
+                    ? "logs-" + date + ".txt" : "logs-all.txt";
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION,
-                            "attachment; filename=\"logs-" + date + ".txt\"")
+                            "attachment; filename=\"" + filename + "\"")
                     .contentType(MediaType.TEXT_PLAIN)
                     .body(resource);
         } catch (DateTimeParseException e) {
@@ -82,5 +98,4 @@ public class LogController {
                     .body(null);
         }
     }
-
 }

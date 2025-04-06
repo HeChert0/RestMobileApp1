@@ -30,7 +30,8 @@ public class UserController {
         this.userMapper = userMapper;
     }
 
-    @Operation(summary = "Get all users", description = "Retrieves a list of all users and caches each one individually")
+    @Operation(summary = "Get all users", description =
+            "Retrieves a list of all users and caches each one individually")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Users retrieved successfully"),
         @ApiResponse(responseCode = "400", description = "Bad request")
@@ -42,7 +43,8 @@ public class UserController {
         return ResponseEntity.ok(dtos);
     }
 
-    @Operation(summary = "Get user by ID", description = "Retrieves a single user by its ID using cache if available")
+    @Operation(summary = "Get user by ID", description =
+            "Retrieves a single user by its ID using cache if available")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "User found"),
         @ApiResponse(responseCode = "404", description = "User not found")
@@ -55,7 +57,8 @@ public class UserController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @Operation(summary = "Get user details", description = "Retrieves detailed user information (including orders) by user ID")
+    @Operation(summary = "Get user details", description =
+            "Retrieves detailed user information (including orders) by user ID")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "User details retrieved successfully"),
         @ApiResponse(responseCode = "404", description = "User not found")
@@ -81,7 +84,8 @@ public class UserController {
         return ResponseEntity.ok(userMapper.toDto(savedUser));
     }
 
-    @Operation(summary = "Update user", description = "Updates an existing user and updates its cache")
+    @Operation(summary = "Update user", description =
+            "Updates an existing user and updates its cache")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "User updated successfully"),
         @ApiResponse(responseCode = "400", description = "Invalid input data"),
@@ -99,7 +103,8 @@ public class UserController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @Operation(summary = "Delete user", description = "Deletes a user and updates the cache accordingly")
+    @Operation(summary = "Delete user", description =
+            "Deletes a user and updates the cache accordingly")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "204", description = "User deleted successfully"),
         @ApiResponse(responseCode = "404", description = "User not found")
