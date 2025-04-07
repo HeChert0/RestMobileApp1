@@ -1,12 +1,13 @@
 package app.dao;
 
+
 import app.models.Smartphone;
+import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 
 @Repository
 public interface SmartphoneRepository extends JpaRepository<Smartphone, Long> {
@@ -15,7 +16,7 @@ public interface SmartphoneRepository extends JpaRepository<Smartphone, Long> {
             + "WHERE (:brand IS NULL OR lower(s.brand) = lower(:brand)) "
             + "AND (:model IS NULL OR lower(s.model) = lower(:model)) "
             + "AND (:price IS NULL OR s.price = :price)")
-    List<Smartphone> filterSmartphonesJPQL(@Param("brand") String brand,
+    List<Smartphone> filterSmartphonesJpql(@Param("brand") String brand,
                                            @Param("model") String model,
                                            @Param("price") Double price);
 

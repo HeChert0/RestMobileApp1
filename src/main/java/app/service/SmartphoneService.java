@@ -7,7 +7,6 @@ import app.models.Order;
 import app.models.Smartphone;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,7 +17,6 @@ public class SmartphoneService {
 
     private final SmartphoneRepository smartphoneRepository;
     private final OrderRepository orderRepository;
-    private final OrderService orderService;
     private final LruCache<Long, Smartphone> smartphoneCache;
     private final LruCache<Long, Order> orderCache;
     private final LruCache<Long, app.models.User> userCache;
@@ -26,10 +24,11 @@ public class SmartphoneService {
     @Autowired
     public SmartphoneService(SmartphoneRepository smartphoneRepository,
                              OrderRepository orderRepository,
-                             OrderService orderService, LruCache<Long, Smartphone> smartphoneCache, LruCache<Long, Order> orderCache, LruCache<Long, app.models.User> userCache) {
+                             LruCache<Long, Smartphone> smartphoneCache,
+                             LruCache<Long, Order> orderCache,
+                             LruCache<Long, app.models.User> userCache) {
         this.smartphoneRepository = smartphoneRepository;
         this.orderRepository = orderRepository;
-        this.orderService = orderService;
         this.smartphoneCache = smartphoneCache;
         this.orderCache = orderCache;
         this.userCache = userCache;
@@ -102,7 +101,8 @@ public class SmartphoneService {
     @Transactional
     public void deleteSmartphone(Long id) {
         Smartphone phone = smartphoneRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Smartphone with id " + id + " not found."));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Smartphone with id " + id + " not found."));
         // Для каждого заказа удаляем ссылки на данный телефон
         List<Order> orders = orderRepository.findAll();
         orders.forEach(order -> {
@@ -129,11 +129,14 @@ public class SmartphoneService {
 
 
     @Transactional(readOnly = true)
-    public List<Smartphone> filterSmartphones(String brand, String model, Double price, boolean nativeQuery) {
+    public List<Smartphone> filterSmartphones(String brand,
+                                              String model,
+                                              Double price,
+                                              boolean nativeQuery) {
         if (nativeQuery) {
             return smartphoneRepository.filterSmartphonesNative(brand, model, price);
         } else {
-            return smartphoneRepository.filterSmartphonesJPQL(brand, model, price);
+            return smartphoneRepository.filterSmartphonesJpql(brand, model, price);
         }
     }
 }

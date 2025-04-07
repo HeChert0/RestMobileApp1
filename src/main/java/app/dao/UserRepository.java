@@ -1,7 +1,6 @@
 package app.dao;
 
 import app.models.User;
-
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;

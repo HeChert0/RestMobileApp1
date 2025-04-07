@@ -44,7 +44,8 @@ public class OrderController {
         this.smartphoneMapper = smartphoneMapper;
     }
 
-    @Operation(summary = "Get all orders", description = "Retrieves a list of all orders and caches each order individually")
+    @Operation(summary = "Get all orders", description =
+            "Retrieves a list of all orders and caches each order individually")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Orders retrieved successfully"),
         @ApiResponse(responseCode = "400", description = "Bad request")
@@ -57,7 +58,8 @@ public class OrderController {
     }
 
 
-    @Operation(summary = "Get order by ID", description = "Retrieves a single order by its ID using cache if available")
+    @Operation(summary = "Get order by ID", description =
+            "Retrieves a single order by its ID using cache if available")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Order found"),
         @ApiResponse(responseCode = "404", description = "Order not found")
@@ -96,7 +98,8 @@ public class OrderController {
     )
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Order updated successfully"),
-        @ApiResponse(responseCode = "204", description = "Order deleted because no smartphones were provided"),
+        @ApiResponse(responseCode = "204", description =
+                "Order deleted because no smartphones were provided"),
         @ApiResponse(responseCode = "400", description = "Invalid order data provided"),
         @ApiResponse(responseCode = "404", description = "Order not found")
     })
