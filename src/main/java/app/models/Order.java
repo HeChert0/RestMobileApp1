@@ -21,6 +21,7 @@ import java.util.List;
 @Table(name = "orders")
 public class Order {
 
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -44,6 +45,10 @@ public class Order {
 
     public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public User getUser() {
