@@ -31,10 +31,12 @@ class OrderServiceTest {
     private OrderRepository orderRepository;
     @Mock
     private SmartphoneRepository smartphoneRepository;
-    @Mock
-    private LruCache<Long, Order> orderCache;
-    @Mock
-    private LruCache<Long, User> userCache;
+
+    @Spy
+    private LruCache<Long, Order> orderCache = new LruCache<>(100);
+    @Spy
+    private LruCache<Long, User> userCache = new LruCache<>(100);
+
     @Mock
     private UserRepository userRepository;
 
@@ -95,18 +97,17 @@ class OrderServiceTest {
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(smartphoneRepository.findById(1L)).thenReturn(Optional.of(testPhone));
-        when(orderRepository.save(any())).thenAnswer(invocation -> {
+        when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
             Order saved = invocation.getArgument(0);
-            saved.setId(1L); // Устанавливаем ID
+            saved.setId(1L);
             return saved;
         });
 
         Order savedOrder = orderService.createOrder(newOrder, List.of(1L));
 
-        ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
-        verify(orderCache).put(eq(1L), orderCaptor.capture());
-
-        assertEquals(999.99, orderCaptor.getValue().getTotalAmount());
+        // Проверка сохранения в кэше
+        verify(orderCache).put(eq(1L), any(Order.class));
+        assertEquals(999.99, savedOrder.getTotalAmount());
     }
 
     @Test
@@ -136,6 +137,7 @@ class OrderServiceTest {
 
         orderService.updateOrder(1L, updatedOrder, List.of(2L));
 
+        // Проверка обновления кэша
         verify(orderCache).put(eq(1L), any(Order.class));
     }
 
@@ -155,6 +157,7 @@ class OrderServiceTest {
 
         List<Order> result = orderService.getOrdersBySmartphoneCriteria("Apple", "iPhone", 900.0, 1000.0, true);
 
+        // Проверка сохранения в кэше
         verify(orderCache).put(eq(1L), any(Order.class));
     }
 
@@ -164,6 +167,8 @@ class OrderServiceTest {
 
         orderService.deleteOrder(1L);
 
+        // Проверка удаления из кэша
         verify(orderCache).remove(eq(1L));
+        verify(orderRepository).delete(testOrder);
     }
 }
