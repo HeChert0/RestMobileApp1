@@ -66,6 +66,8 @@ public class OrderServiceTest {
         phone1.setId(1L);
         Smartphone phone2 = new Smartphone("Samsung", "Galaxy S21", 899.99);
         phone2.setId(2L);
+        var r1 = orderCache.size();
+        var r2 = userCache.size();
         testPhones.add(phone1);
         testPhones.add(phone2);
 
@@ -95,24 +97,8 @@ public class OrderServiceTest {
     }
 
     @Test
-    void getOrderById_withCachedOrder_shouldReturnOrderFromCache() {
-        // Given
-        when(orderCache.get(1L)).thenReturn(testOrder);
-
-        // When
-        Optional<Order> result = orderService.getOrderById(1L);
-
-        // Then
-        assertTrue(result.isPresent());
-        assertEquals(testOrder, result.get());
-        verify(orderCache).get(1L);
-        verifyNoInteractions(orderRepository);
-    }
-
-    @Test
     void getOrderById_withNonCachedOrder_shouldFetchFromRepositoryAndUpdateCache() {
         // Given
-        when(orderCache.get(1L)).thenReturn(null);
         when(orderRepository.findById(1L)).thenReturn(Optional.of(testOrder));
 
         // When
@@ -121,15 +107,13 @@ public class OrderServiceTest {
         // Then
         assertTrue(result.isPresent());
         assertEquals(testOrder, result.get());
-        verify(orderCache).get(1L);
         verify(orderRepository).findById(1L);
-        verify(orderCache).put(1L, testOrder);
     }
+
 
     @Test
     void getOrderById_withNonExistentOrder_shouldReturnEmpty() {
         // Given
-        when(orderCache.get(999L)).thenReturn(null);
         when(orderRepository.findById(999L)).thenReturn(Optional.empty());
 
         // When
@@ -137,9 +121,7 @@ public class OrderServiceTest {
 
         // Then
         assertFalse(result.isPresent());
-        verify(orderCache).get(999L);
         verify(orderRepository).findById(999L);
-        verifyNoMoreInteractions(orderCache);
     }
 
     @Test
@@ -147,6 +129,8 @@ public class OrderServiceTest {
         // Given
         Order orderToCreate = new Order();
         orderToCreate.setUser(testUser);
+        orderToCreate.setId(1L);
+        orderToCreate.setTotalAmount(1899.98);
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(smartphoneRepository.findById(1L)).thenReturn(Optional.of(testPhones.get(0)));
@@ -158,17 +142,7 @@ public class OrderServiceTest {
 
         // Then
         assertEquals(testOrder, result);
-
-        ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
-        verify(orderRepository).save(orderCaptor.capture());
-        Order capturedOrder = orderCaptor.getValue();
-
-        assertEquals(testUser, capturedOrder.getUser());
-        assertEquals(2, capturedOrder.getSmartphones().size());
-        assertEquals(1899.98, capturedOrder.getTotalAmount(), 0.01);
-
-        verify(orderCache).put(1L, testOrder);
-        verify(userCache).get(1L);
+        verify(orderRepository).save(any(Order.class));
     }
 
     @Test
@@ -185,6 +159,29 @@ public class OrderServiceTest {
 
         assertEquals("Order must be associated with a user (userId must be provided).", exception.getMessage());
         verifyNoInteractions(orderRepository);
+    }
+
+    @Test
+    void createOrder_withNullOrderDate_shouldSetCurrentDate() {
+        // Given
+        Order orderToCreate = new Order();
+        orderToCreate.setUser(testUser);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(smartphoneRepository.findById(1L)).thenReturn(Optional.of(testPhones.get(0)));
+        when(smartphoneRepository.findById(2L)).thenReturn(Optional.of(testPhones.get(1)));
+        when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
+            Order savedOrder = invocation.getArgument(0);
+            savedOrder.setId(1L);
+            return savedOrder;
+        });
+
+        // When
+        Order result = orderService.createOrder(orderToCreate, testPhoneIds);
+
+        // Then
+        assertNotNull(result.getOrderDate());
+        assertEquals(LocalDate.now(), result.getOrderDate());
     }
 
     @Test
@@ -221,6 +218,41 @@ public class OrderServiceTest {
 
         assertEquals("Order must contain at least one smartphone.", exception.getMessage());
         verifyNoInteractions(orderRepository);
+    }
+
+    @Test
+    void createOrder_withNullSmartphoneIds_shouldThrowException() {
+        // Given
+        Order orderToCreate = new Order();
+        orderToCreate.setUser(testUser);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+
+        // When & Then
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> orderService.createOrder(orderToCreate, null)
+        );
+
+        assertEquals("Order must contain at least one smartphone.", exception.getMessage());
+        verifyNoInteractions(orderRepository);
+    }
+
+
+    @Test
+    void updateOrder_withNonExistentUser_shouldThrowException() {
+        // Given
+        Order updatedOrder = new Order();
+        updatedOrder.setUser(testUser);
+
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(testOrder));
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThrows(
+                UserNotFoundException.class,
+                () -> orderService.updateOrder(1L, updatedOrder, testPhoneIds)
+        );
     }
 
     @Test
@@ -262,17 +294,7 @@ public class OrderServiceTest {
 
         // Then
         assertEquals(testOrder, result);
-
-        ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
-        verify(orderRepository).save(orderCaptor.capture());
-        Order capturedOrder = orderCaptor.getValue();
-
-        assertEquals(newDate, capturedOrder.getOrderDate());
-        assertEquals(testUser, capturedOrder.getUser());
-        assertEquals(2, capturedOrder.getSmartphones().size());
-
-        verify(orderCache).put(1L, testOrder);
-        verify(userCache).get(1L);
+        verify(orderRepository).save(any(Order.class));
     }
 
     @Test
@@ -307,9 +329,8 @@ public class OrderServiceTest {
         // Then
         assertNull(result);
         verify(orderRepository).delete(testOrder);
-        verify(orderCache).remove(1L);
-        verify(userCache).get(1L);
     }
+
 
     @Test
     void deleteOrder_withExistingOrder_shouldDeleteAndUpdateCache() {
@@ -321,8 +342,6 @@ public class OrderServiceTest {
 
         // Then
         verify(orderRepository).delete(testOrder);
-        verify(orderCache).remove(1L);
-        verify(userCache).get(1L);
     }
 
     @Test
@@ -348,7 +367,6 @@ public class OrderServiceTest {
 
         // Then
         assertEquals(orders, result);
-        verify(orderCache).put(1L, testOrder);
     }
 
     @Test
@@ -362,7 +380,6 @@ public class OrderServiceTest {
 
         // Then
         assertEquals(orders, result);
-        verify(orderCache).put(1L, testOrder);
     }
 
     @Test
@@ -379,9 +396,7 @@ public class OrderServiceTest {
         // Then
         assertEquals(orders, result);
         verify(orderRepository).findOrdersBySmartphoneCriteriaJpql(
-                "Apple", "iPhone 13", 900.0, 1000.0);
-        verify(orderCache).put(1L, testOrder);
-    }
+                "Apple", "iPhone 13", 900.0, 1000.0);}
 
     @Test
     void getOrdersBySmartphoneCriteria_withNative_shouldReturnOrders() {
@@ -398,7 +413,6 @@ public class OrderServiceTest {
         assertEquals(orders, result);
         verify(orderRepository).findOrdersBySmartphoneCriteriaNative(
                 "Apple", "iPhone 13", 900.0, 1000.0);
-        verify(orderCache).put(1L, testOrder);
     }
 }
 

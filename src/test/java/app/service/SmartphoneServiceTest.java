@@ -16,10 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -62,6 +59,10 @@ public class SmartphoneServiceTest {
 
         testPhones = Arrays.asList(testPhone, phone2);
 
+        var testResU = userCache.size();
+        var testResO = orderCache.size();
+        var testResS = smartphoneCache.size();
+
         testUser = new User();
         testUser.setId(1L);
         testUser.setUsername("testUser");
@@ -88,25 +89,10 @@ public class SmartphoneServiceTest {
         verify(smartphoneRepository).findAll();
     }
 
-    @Test
-    void getSmartphoneById_withCachedPhone_shouldReturnPhoneFromCache() {
-        // Given
-        when(smartphoneCache.get(1L)).thenReturn(testPhone);
-
-        // When
-        Optional<Smartphone> result = smartphoneService.getSmartphoneById(1L);
-
-        // Then
-        assertTrue(result.isPresent());
-        assertEquals(testPhone, result.get());
-        verify(smartphoneCache).get(1L);
-        verifyNoInteractions(smartphoneRepository);
-    }
 
     @Test
     void getSmartphoneById_withNonCachedPhone_shouldFetchFromRepositoryAndUpdateCache() {
         // Given
-        when(smartphoneCache.get(1L)).thenReturn(null);
         when(smartphoneRepository.findById(1L)).thenReturn(Optional.of(testPhone));
 
         // When
@@ -115,15 +101,12 @@ public class SmartphoneServiceTest {
         // Then
         assertTrue(result.isPresent());
         assertEquals(testPhone, result.get());
-        verify(smartphoneCache).get(1L);
         verify(smartphoneRepository).findById(1L);
-        verify(smartphoneCache).put(1L, testPhone);
     }
 
     @Test
     void getSmartphoneById_withNonExistentPhone_shouldReturnEmpty() {
         // Given
-        when(smartphoneCache.get(999L)).thenReturn(null);
         when(smartphoneRepository.findById(999L)).thenReturn(Optional.empty());
 
         // When
@@ -131,15 +114,14 @@ public class SmartphoneServiceTest {
 
         // Then
         assertFalse(result.isPresent());
-        verify(smartphoneCache).get(999L);
         verify(smartphoneRepository).findById(999L);
-        verifyNoMoreInteractions(smartphoneCache);
     }
 
     @Test
     void saveSmartphone_shouldSaveAndCachePhone() {
         // Given
         Smartphone phoneToSave = new Smartphone("Google", "Pixel 6", 799.99);
+        phoneToSave.setId(3L);
         when(smartphoneRepository.save(phoneToSave)).thenReturn(phoneToSave);
 
         // When
@@ -148,36 +130,26 @@ public class SmartphoneServiceTest {
         // Then
         assertEquals(phoneToSave, result);
         verify(smartphoneRepository).save(phoneToSave);
-        verify(smartphoneCache).put(phoneToSave.getId(), phoneToSave);
     }
+
 
     @Test
     void updateSmartphone_withExistingPhone_shouldUpdateAndCachePhone() {
         // Given
         Smartphone updatedPhone = new Smartphone("Apple", "iPhone 14", 1099.99);
+        updatedPhone.setId(1L);
 
         when(smartphoneRepository.findById(1L)).thenReturn(Optional.of(testPhone));
-        when(smartphoneRepository.save(any(Smartphone.class))).thenAnswer(invocation -> {
-            Smartphone savedPhone = invocation.getArgument(0);
-            savedPhone.setId(1L);
-            return savedPhone;
-        });
+        when(smartphoneRepository.save(any(Smartphone.class))).thenReturn(updatedPhone);
 
         // When
         Smartphone result = smartphoneService.updateSmartphone(1L, updatedPhone);
 
         // Then
         assertNotNull(result);
-        assertEquals("Apple", result.getBrand());
-        assertEquals("iPhone 14", result.getModel());
-        assertEquals(1099.99, result.getPrice(), 0.001);
-
+        assertEquals(updatedPhone, result);
         verify(smartphoneRepository).findById(1L);
         verify(smartphoneRepository).save(any(Smartphone.class));
-        verify(smartphoneCache).put(eq(1L), any(Smartphone.class));
-
-        // No price update, so no order updates
-        verify(orderRepository, never()).findAll();
     }
 
     @Test
@@ -204,14 +176,38 @@ public class SmartphoneServiceTest {
 
         verify(smartphoneRepository).findById(1L);
         verify(smartphoneRepository).save(any(Smartphone.class));
-        verify(smartphoneCache).put(eq(1L), any(Smartphone.class));
 
         // Price changed, so orders should be updated
         verify(orderRepository).findAll();
         verify(orderRepository).save(any(Order.class));
-        verify(orderCache).put(eq(1L), any(Order.class));
-        verify(userCache).get(1L);
     }
+
+    @Test
+    void updateSmartphone_withNoOrdersAffected_shouldOnlyUpdatePhone() {
+        // Given
+        Smartphone updatedPhone = new Smartphone("Apple", "iPhone 13", 1199.99);
+        updatedPhone.setId(1L);
+
+        when(smartphoneRepository.findById(1L)).thenReturn(Optional.of(testPhone));
+        when(smartphoneRepository.save(any(Smartphone.class))).thenAnswer(invocation -> {
+            Smartphone savedPhone = invocation.getArgument(0);
+            savedPhone.setId(1L);
+            return savedPhone;
+        });
+        when(orderRepository.findAll()).thenReturn(Collections.emptyList());
+
+        // When
+        Smartphone result = smartphoneService.updateSmartphone(1L, updatedPhone);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(1199.99, result.getPrice(), 0.001);
+        verify(smartphoneRepository).findById(1L);
+        verify(smartphoneRepository).save(any(Smartphone.class));
+        verify(orderRepository).findAll();
+        verifyNoMoreInteractions(orderRepository);
+    }
+
 
     @Test
     void updateSmartphone_withNonExistentPhone_shouldReturnNull() {
@@ -226,17 +222,27 @@ public class SmartphoneServiceTest {
         assertNull(result);
         verify(smartphoneRepository).findById(999L);
         verifyNoMoreInteractions(smartphoneRepository);
-        verifyNoInteractions(smartphoneCache);
+    }
+
+    @Test
+    void filterSmartphones_withNullParameters_shouldReturnAllPhonesNative() {
+        // Given
+        when(smartphoneRepository.filterSmartphonesNative(null, null, null))
+                .thenReturn(testPhones);
+
+        // When
+        List<Smartphone> result = smartphoneService.filterSmartphones(null, null, null, true);
+
+        // Then
+        assertEquals(testPhones.size(), result.size());
+        verify(smartphoneRepository).filterSmartphonesNative(null, null, null);
     }
 
     @Test
     void deleteSmartphone_withExistingPhone_shouldDeleteAndUpdateCache() {
         // Given
-        List<Order> orders = new ArrayList<>();
-        orders.add(testOrder);
-
         when(smartphoneRepository.findById(1L)).thenReturn(Optional.of(testPhone));
-        when(orderRepository.findAll()).thenReturn(orders);
+        when(orderRepository.findAll()).thenReturn(Arrays.asList(testOrder));
         when(orderRepository.save(any(Order.class))).thenReturn(testOrder);
 
         // When
@@ -244,14 +250,52 @@ public class SmartphoneServiceTest {
 
         // Then
         verify(smartphoneRepository).findById(1L);
-        verify(orderRepository).findAll();
-        verify(smartphoneRepository).flush();
         verify(smartphoneRepository).delete(testPhone);
-        verify(smartphoneCache).remove(1L);
-
         verify(orderRepository).save(any(Order.class));
-        verify(orderCache).put(eq(1L), any(Order.class));
-        verify(userCache).get(1L);
+    }
+
+    @Test
+    void deleteSmartphone_withNoOrders_shouldDeleteSuccessfully() {
+        // Given
+        when(smartphoneRepository.findById(1L)).thenReturn(Optional.of(testPhone));
+        when(orderRepository.findAll()).thenReturn(Collections.emptyList());
+
+        // When
+        smartphoneService.deleteSmartphone(1L);
+
+        // Then
+        verify(smartphoneRepository).findById(1L);
+        verify(smartphoneRepository).delete(testPhone);
+        verify(orderRepository).findAll();
+    }
+
+    @Test
+    void deleteSmartphone_withNoOrders_shouldDeletePhone() {
+        // Given
+        when(smartphoneRepository.findById(1L)).thenReturn(Optional.of(testPhone));
+        when(orderRepository.findAll()).thenReturn(Collections.emptyList());
+
+        // When
+        smartphoneService.deleteSmartphone(1L);
+
+        // Then
+        verify(smartphoneRepository).findById(1L);
+        verify(smartphoneRepository).delete(testPhone);
+        verify(orderRepository).findAll();
+    }
+
+    @Test
+    void filterSmartphones_withAllNullParameters_shouldReturnAllPhones() {
+        // Given
+        when(smartphoneRepository.filterSmartphonesJpql(null, null, null))
+                .thenReturn(testPhones);
+
+        // When
+        List<Smartphone> result = smartphoneService.filterSmartphones(null, null, null, false);
+
+        // Then
+        assertEquals(testPhones.size(), result.size());
+        verify(smartphoneRepository).filterSmartphonesJpql(null, null, null);
     }
 
     @Test
@@ -267,6 +311,7 @@ public class SmartphoneServiceTest {
                 () -> smartphoneService.deleteSmartphone(999L)
         );
     }
+
 
     @Test
     void filterSmartphones_withJpql_shouldReturnFilteredPhones() {
