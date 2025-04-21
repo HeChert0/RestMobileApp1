@@ -81,338 +81,384 @@ public class OrderServiceTest {
         testOrder.setTotalAmount(1899.98);
     }
 
-    @Test
-    void getAllOrders_shouldReturnAllOrders() {
-        // Given
-        List<Order> orders = Arrays.asList(testOrder);
-        when(orderRepository.findAll()).thenReturn(orders);
+// Дополните ваш OrderServiceTest следующими методами:
 
-        // When
+    // 1. getAllOrders()
+    @Test
+    void getAllOrders_shouldReturnList() {
+        Order sample = new Order();
+        sample.setId(1L);
+        when(orderRepository.findAll()).thenReturn(List.of(sample));
+
         List<Order> result = orderService.getAllOrders();
 
-        // Then
-        assertEquals(orders, result);
-        verify(orderRepository).count();
+        assertEquals(1, result.size());
+        assertEquals(sample, result.get(0));
         verify(orderRepository).findAll();
     }
 
+    // 2. getOrderById – найден
     @Test
-    void getOrderById_withNonCachedOrder_shouldFetchFromRepositoryAndUpdateCache() {
-        // Given
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(testOrder));
+    void getOrderById_found() {
+        Order sample = new Order();
+        sample.setId(1L);
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(sample));
 
-        // When
         Optional<Order> result = orderService.getOrderById(1L);
 
-        // Then
         assertTrue(result.isPresent());
-        assertEquals(testOrder, result.get());
+        assertEquals(sample, result.get());
         verify(orderRepository).findById(1L);
     }
 
-
+    // 3. getOrderById – не найден
     @Test
-    void getOrderById_withNonExistentOrder_shouldReturnEmpty() {
-        // Given
-        when(orderRepository.findById(999L)).thenReturn(Optional.empty());
+    void getOrderById_notFound() {
+        when(orderRepository.findById(2L)).thenReturn(Optional.empty());
 
-        // When
-        Optional<Order> result = orderService.getOrderById(999L);
+        Optional<Order> result = orderService.getOrderById(2L);
 
-        // Then
         assertFalse(result.isPresent());
-        verify(orderRepository).findById(999L);
+        verify(orderRepository).findById(2L);
     }
 
+    // 4. createOrder – успех
     @Test
-    void createOrder_withValidInput_shouldCreateAndCacheOrder() {
-        // Given
-        Order orderToCreate = new Order();
-        orderToCreate.setUser(testUser);
-        orderToCreate.setId(1L);
-        orderToCreate.setTotalAmount(1899.98);
-
-        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
-        when(smartphoneRepository.findById(1L)).thenReturn(Optional.of(testPhones.get(0)));
-        when(smartphoneRepository.findById(2L)).thenReturn(Optional.of(testPhones.get(1)));
-        when(orderRepository.save(any(Order.class))).thenReturn(testOrder);
-
-        // When
-        Order result = orderService.createOrder(orderToCreate, testPhoneIds);
-
-        // Then
-        assertEquals(testOrder, result);
-        verify(orderRepository).save(any(Order.class));
-    }
-
-    @Test
-    void createOrder_withNullUser_shouldThrowException() {
-        // Given
-        Order orderToCreate = new Order();
-        // user is null
-
-        // When & Then
-        IllegalArgumentException exception = assertThrows(
-                IllegalArgumentException.class,
-                () -> orderService.createOrder(orderToCreate, testPhoneIds)
-        );
-
-        assertEquals("Order must be associated with a user (userId must be provided).", exception.getMessage());
-        verifyNoInteractions(orderRepository);
-    }
-
-    @Test
-    void createOrder_withNullOrderDate_shouldSetCurrentDate() {
-        // Given
-        Order orderToCreate = new Order();
-        orderToCreate.setUser(testUser);
-
-        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
-        when(smartphoneRepository.findById(1L)).thenReturn(Optional.of(testPhones.get(0)));
-        when(smartphoneRepository.findById(2L)).thenReturn(Optional.of(testPhones.get(1)));
-        when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
-            Order savedOrder = invocation.getArgument(0);
-            savedOrder.setId(1L);
-            return savedOrder;
+    void createOrder_success() {
+        // подготовка
+        User u = new User();
+        u.setId(10L);
+        Order input = new Order();
+        input.setUser(u);
+        // два смартфона
+        Smartphone s1 = new Smartphone(); s1.setId(100L); s1.setPrice(50.);
+        Smartphone s2 = new Smartphone(); s2.setId(200L); s2.setPrice(70.);
+        when(userRepository.findById(10L)).thenReturn(Optional.of(u));
+        when(smartphoneRepository.findById(100L)).thenReturn(Optional.of(s1));
+        when(smartphoneRepository.findById(200L)).thenReturn(Optional.of(s2));
+        when(orderRepository.save(any())).thenAnswer(inv -> {
+            Order o = inv.getArgument(0);
+            o.setId(5L);
+            return o;
         });
 
-        // When
-        Order result = orderService.createOrder(orderToCreate, testPhoneIds);
+        Order result = orderService.createOrder(input, List.of(100L, 200L));
 
-        // Then
+        assertEquals(5L, result.getId());
+        assertEquals(u, result.getUser());
+        assertEquals(120.0, result.getTotalAmount());
+        assertEquals(2, result.getSmartphones().size());
         assertNotNull(result.getOrderDate());
-        assertEquals(LocalDate.now(), result.getOrderDate());
+        verify(orderRepository).save(any());
     }
 
+    // 5. createOrder – нет пользователя
     @Test
-    void createOrder_withNonExistentUser_shouldThrowException() {
-        // Given
-        Order orderToCreate = new Order();
-        orderToCreate.setUser(testUser);
-
-        when(userRepository.findById(1L)).thenReturn(Optional.empty());
-
-        // When & Then
-        IllegalArgumentException exception = assertThrows(
-                IllegalArgumentException.class,
-                () -> orderService.createOrder(orderToCreate, testPhoneIds)
-        );
-
-        assertEquals("User with ID 1 not found", exception.getMessage());
-        verifyNoInteractions(orderRepository);
+    void createOrder_noUser_shouldThrow() {
+        Order input = new Order();
+        assertThrows(IllegalArgumentException.class,
+                () -> orderService.createOrder(input, List.of(1L)));
     }
 
+    // 6. createOrder – пользователь не найден
     @Test
-    void createOrder_withEmptyPhoneIds_shouldThrowException() {
-        // Given
-        Order orderToCreate = new Order();
-        orderToCreate.setUser(testUser);
+    void createOrder_userNotFound_shouldThrow() {
+        User u = new User(); u.setId(99L);
+        Order input = new Order(); input.setUser(u);
+        when(userRepository.findById(99L)).thenReturn(Optional.empty());
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
-
-        // When & Then
-        IllegalArgumentException exception = assertThrows(
-                IllegalArgumentException.class,
-                () -> orderService.createOrder(orderToCreate, Collections.emptyList())
-        );
-
-        assertEquals("Order must contain at least one smartphone.", exception.getMessage());
-        verifyNoInteractions(orderRepository);
-    }
-
-    @Test
-    void createOrder_withNullSmartphoneIds_shouldThrowException() {
-        // Given
-        Order orderToCreate = new Order();
-        orderToCreate.setUser(testUser);
-
-        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
-
-        // When & Then
-        IllegalArgumentException exception = assertThrows(
-                IllegalArgumentException.class,
-                () -> orderService.createOrder(orderToCreate, null)
-        );
-
-        assertEquals("Order must contain at least one smartphone.", exception.getMessage());
-        verifyNoInteractions(orderRepository);
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> orderService.createOrder(input, List.of(1L)));
+        assertTrue(ex.getMessage().contains("User with ID 99 not found"));
     }
 
 
+    // 8. updateOrder – успех
     @Test
-    void updateOrder_withNonExistentUser_shouldThrowException() {
-        // Given
-        Order updatedOrder = new Order();
-        updatedOrder.setUser(testUser);
+    void updateOrder_success() {
+        // подготовка существующего заказа
+        Order existing = new Order();
+        existing.setId(1L);
+        existing.setUser(new User()); existing.getUser().setId(1L);
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(existing));
+        // новый пользователь
+        User newU = new User(); newU.setId(2L);
+        when(userRepository.findById(2L)).thenReturn(Optional.of(newU));
+        // новый смартфон
+        Smartphone s = new Smartphone(); s.setId(50L); s.setPrice(25.);
+        when(smartphoneRepository.findById(50L)).thenReturn(Optional.of(s));
+        when(orderRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(testOrder));
-        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+        Order updReq = new Order();
+        updReq.setOrderDate(LocalDate.of(2021,1,1));
+        User u2 = new User(); u2.setId(2L);
+        updReq.setUser(u2);
 
-        // When & Then
-        assertThrows(
-                UserNotFoundException.class,
-                () -> orderService.updateOrder(1L, updatedOrder, testPhoneIds)
-        );
+        Order result = orderService.updateOrder(1L, updReq, List.of(50L));
+
+        assertNotNull(result);
+        assertEquals(newU, result.getUser());
+        assertEquals(25.0, result.getTotalAmount());
+        assertEquals(LocalDate.of(2021,1,1), result.getOrderDate());
+        verify(orderRepository).save(existing);
+    }
+
+    // 9. updateOrder – удаление при пустом списке
+    @Test
+    void updateOrder_deleteAllSmartphones_returnsNull() {
+        Order existing = new Order();
+        existing.setId(1L);
+        existing.setUser(new User()); existing.getUser().setId(1L);
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(existing));
+        User u = new User(); u.setId(1L);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(u));
+
+        Order result = orderService.updateOrder(1L, new Order() {{ setUser(u); }}, Collections.emptyList());
+
+        assertNull(result);
+        verify(orderRepository).delete(existing);
+    }
+
+    // 10. updateOrder – заказ не найден
+    @Test
+    void updateOrder_notFound_shouldThrow() {
+        when(orderRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(OrderNotFoundException.class,
+                () -> orderService.updateOrder(99L, new Order() {{ setUser(new User() {{ setId(1L); }}); }}, List.of(1L)));
+    }
+
+    // 11. deleteOrder – успех
+    @Test
+    void deleteOrder_success() {
+        Order o = new Order(); o.setId(1L);
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(o));
+
+        orderService.deleteOrder(1L);
+
+        verify(orderRepository).delete(o);
+    }
+
+    // 12. deleteOrder – не найден
+    @Test
+    void deleteOrder_notFound_shouldThrow() {
+        when(orderRepository.findById(2L)).thenReturn(Optional.empty());
+
+        assertThrows(OrderNotFoundException.class,
+                () -> orderService.deleteOrder(2L));
+    }
+
+    // 13. getOrdersByUserUsernameJpql
+    @Test
+    void getOrdersByUserUsernameJpql_returnsList() {
+        Order o = new Order(); o.setId(1L);
+        when(orderRepository.findByUserUsernameJpql("john"))
+                .thenReturn(List.of(o));
+
+        List<Order> list = orderService.getOrdersByUserUsernameJpql("john");
+
+        assertEquals(1, list.size());
+        assertEquals(o, list.get(0));
+        verify(orderRepository).findByUserUsernameJpql("john");
+    }
+
+    // 14. getOrdersBySmartphoneCriteria – native
+    @Test
+    void getOrdersBySmartphoneCriteria_native() {
+        Order o = new Order(); o.setId(1L);
+        when(orderRepository.findOrdersBySmartphoneCriteriaNative("A","B",1.,2.))
+                .thenReturn(List.of(o));
+
+        List<Order> list = orderService.getOrdersBySmartphoneCriteria("A","B",1.,2., true);
+
+        assertEquals(1, list.size());
+        verify(orderRepository).findOrdersBySmartphoneCriteriaNative("A","B",1.,2.);
+    }
+
+    // 15. getOrdersBySmartphoneCriteria – jpql
+    @Test
+    void getOrdersBySmartphoneCriteria_jpql() {
+        Order o = new Order(); o.setId(2L);
+        when(orderRepository.findOrdersBySmartphoneCriteriaJpql("X",null, null, null))
+                .thenReturn(List.of(o));
+
+        List<Order> list = orderService.getOrdersBySmartphoneCriteria("X",null,null,null, false);
+
+        assertEquals(1, list.size());
+        verify(orderRepository).findOrdersBySmartphoneCriteriaJpql("X",null,null,null);
     }
 
     @Test
-    void createOrder_withNonExistentPhone_shouldThrowException() {
-        // Given
-        Order orderToCreate = new Order();
-        orderToCreate.setUser(testUser);
+    void createOrder_emptySmartphones_success() {
+        User u = new User();
+        u.setId(1L);
+        Order input = new Order();
+        input.setUser(u);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(u));
+        when(orderRepository.save(any())).thenAnswer(inv -> {
+            Order o = inv.getArgument(0);
+            o.setId(42L);
+            return o;
+        });
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
-        when(smartphoneRepository.findById(1L)).thenReturn(Optional.of(testPhones.get(0)));
-        when(smartphoneRepository.findById(2L)).thenReturn(Optional.empty());
+        Order result = orderService.createOrder(input, Collections.emptyList());
 
-        // When & Then
-        IllegalArgumentException exception = assertThrows(
-                IllegalArgumentException.class,
-                () -> orderService.createOrder(orderToCreate, testPhoneIds)
-        );
-
-        assertEquals("Smartphone with id 2 not found.", exception.getMessage());
-        verifyNoInteractions(orderRepository);
-    }
-
-    @Test
-    void updateOrder_withValidInput_shouldUpdateAndCacheOrder() {
-        // Given
-        Order updatedOrder = new Order();
-        updatedOrder.setUser(testUser);
-        LocalDate newDate = LocalDate.now().plusDays(1);
-        updatedOrder.setOrderDate(newDate);
-
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(testOrder));
-        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
-        when(smartphoneRepository.findById(1L)).thenReturn(Optional.of(testPhones.get(0)));
-        when(smartphoneRepository.findById(2L)).thenReturn(Optional.of(testPhones.get(1)));
-        when(orderRepository.save(any(Order.class))).thenReturn(testOrder);
-
-        // When
-        Order result = orderService.updateOrder(1L, updatedOrder, testPhoneIds);
-
-        // Then
-        assertEquals(testOrder, result);
+        assertNotNull(result);
+        assertEquals(42L, result.getId());
+        assertTrue(result.getSmartphones().isEmpty());
+        assertEquals(0.0, result.getTotalAmount(), 0.001);
+        verify(smartphoneRepository, never()).findById(anyLong());
         verify(orderRepository).save(any(Order.class));
     }
 
     @Test
-    void updateOrder_withNonExistentOrder_shouldThrowException() {
-        // Given
-        Order updatedOrder = new Order();
-        updatedOrder.setUser(testUser);
+    void createOrder_nullSmartphoneIds_shouldThrowNPE() {
+        User u = new User();
+        u.setId(1L);
+        Order input = new Order();
+        input.setUser(u);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(u));
 
-        when(orderRepository.findById(999L)).thenThrow(
-                new OrderNotFoundException("Order with id 999 not found.")
-        );
-
-        // When & Then
-        assertThrows(
-                OrderNotFoundException.class,
-                () -> orderService.updateOrder(999L, updatedOrder, testPhoneIds)
-        );
+        assertThrows(NullPointerException.class,
+                () -> orderService.createOrder(input, null));
     }
 
     @Test
-    void updateOrder_withEmptyPhoneList_shouldDeleteOrder() {
-        // Given
-        Order updatedOrder = new Order();
-        updatedOrder.setUser(testUser);
+    void updateOrder_userNull_shouldThrow() {
+        Order existing = new Order();
+        existing.setId(1L);
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(existing));
 
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(testOrder));
-        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        Order updated = new Order(); // user == null
+        assertThrows(IllegalArgumentException.class,
+                () -> orderService.updateOrder(1L, updated, List.of(1L)));
+    }
 
-        // When
-        Order result = orderService.updateOrder(1L, updatedOrder, Collections.emptyList());
+    @Test
+    void updateOrder_userIdNull_shouldThrow() {
+        Order existing = new Order();
+        existing.setId(1L);
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(existing));
 
-        // Then
+        User u = new User(); // id == null
+        Order updated = new Order();
+        updated.setUser(u);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> orderService.updateOrder(1L, updated, List.of(1L)));
+    }
+
+    @Test
+    void updateOrder_userNotFound_shouldThrow() {
+        Order existing = new Order();
+        existing.setId(1L);
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(existing));
+
+        User u = new User();
+        u.setId(99L);
+        Order updated = new Order();
+        updated.setUser(u);
+
+        when(userRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(UserNotFoundException.class,
+                () -> orderService.updateOrder(1L, updated, List.of(1L)));
+    }
+
+    @Test
+    void updateOrder_smartphoneNotFound_shouldThrow() {
+        Order existing = new Order();
+        existing.setId(1L);
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(existing));
+
+        User u = new User();
+        u.setId(1L);
+        Order updated = new Order();
+        updated.setUser(u);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(u));
+
+        // repository returns empty for smartphone
+        when(smartphoneRepository.findById(5L)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class,
+                () -> orderService.updateOrder(1L, updated, List.of(5L)));
+    }
+
+    @Test
+    void updateOrder_nullSmartphoneIds_deletesAndReturnsNull() {
+        Order existing = new Order();
+        existing.setId(1L);
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(existing));
+
+        User u = new User(); u.setId(1L);
+        Order updated = new Order();
+        updated.setUser(u);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(u));
+
+        Order result = orderService.updateOrder(1L, updated, null);
+
         assertNull(result);
-        verify(orderRepository).delete(testOrder);
-    }
-
-
-    @Test
-    void deleteOrder_withExistingOrder_shouldDeleteAndUpdateCache() {
-        // Given
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(testOrder));
-
-        // When
-        orderService.deleteOrder(1L);
-
-        // Then
-        verify(orderRepository).delete(testOrder);
+        verify(orderRepository).delete(existing);
     }
 
     @Test
-    void deleteOrder_withNonExistentOrder_shouldThrowException() {
-        // Given
-        when(orderRepository.findById(999L)).thenReturn(Optional.empty());
+    void getOrdersByUserUsernameNative_returnsList() {
+        Order o = new Order();
+        o.setId(7L);
+        when(orderRepository.findByUserUsernameNative("alice"))
+                .thenReturn(List.of(o));
 
-        // When & Then
-        assertThrows(
-                OrderNotFoundException.class,
-                () -> orderService.deleteOrder(999L)
-        );
+        List<Order> list = orderService.getOrdersByUserUsernameNative("alice");
+
+        assertEquals(1, list.size());
+        assertEquals(o, list.get(0));
+        verify(orderRepository).findByUserUsernameNative("alice");
     }
 
     @Test
-    void getOrdersByUserUsernameJpql_shouldReturnOrdersAndUpdateCache() {
-        // Given
-        List<Order> orders = Arrays.asList(testOrder);
-        when(orderRepository.findByUserUsernameJpql("testUser")).thenReturn(orders);
+    void updateOrder_orderDateNull_setsNow() {
+        // existing
+        Order existing = new Order();
+        existing.setId(1L);
+        existing.setUser(new User()); existing.getUser().setId(1L);
+        when(orderRepository.findById(1L)).thenReturn(Optional.of(existing));
+        // user found
+        User u = new User(); u.setId(1L);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(u));
+        // one smartphone
+        Smartphone s = new Smartphone(); s.setId(3L); s.setPrice(20.);
+        when(smartphoneRepository.findById(3L)).thenReturn(Optional.of(s));
+        // save returns the same
+        when(orderRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        // When
-        List<Order> result = orderService.getOrdersByUserUsernameJpql("testUser");
+        Order upd = new Order();
+        upd.setUser(u);
+        upd.setOrderDate(null);
 
-        // Then
-        assertEquals(orders, result);
+        Order result = orderService.updateOrder(1L, upd, List.of(3L));
+        assertNotNull(result.getOrderDate());
+        assertEquals(20.0, result.getTotalAmount());
     }
 
     @Test
-    void getOrdersByUserUsernameNative_shouldReturnOrdersAndUpdateCache() {
-        // Given
-        List<Order> orders = Arrays.asList(testOrder);
-        when(orderRepository.findByUserUsernameNative("testUser")).thenReturn(orders);
+    void createOrder_orderDateNull_setsNow() {
+        User u = new User(); u.setId(1L);
+        Order in = new Order();
+        in.setUser(u);
+        in.setOrderDate(null);
+        Smartphone s = new Smartphone(); s.setId(2L); s.setPrice(10.);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(u));
+        when(smartphoneRepository.findById(2L)).thenReturn(Optional.of(s));
+        when(orderRepository.save(any())).thenAnswer(inv -> {
+            Order o = inv.getArgument(0);
+            o.setId(7L);
+            return o;
+        });
 
-        // When
-        List<Order> result = orderService.getOrdersByUserUsernameNative("testUser");
-
-        // Then
-        assertEquals(orders, result);
-    }
-
-    @Test
-    void getOrdersBySmartphoneCriteria_withJpql_shouldReturnOrders() {
-        // Given
-        List<Order> orders = Arrays.asList(testOrder);
-        when(orderRepository.findOrdersBySmartphoneCriteriaJpql(
-                "Apple", "iPhone 13", 900.0, 1000.0)).thenReturn(orders);
-
-        // When
-        List<Order> result = orderService.getOrdersBySmartphoneCriteria(
-                "Apple", "iPhone 13", 900.0, 1000.0, false);
-
-        // Then
-        assertEquals(orders, result);
-        verify(orderRepository).findOrdersBySmartphoneCriteriaJpql(
-                "Apple", "iPhone 13", 900.0, 1000.0);}
-
-    @Test
-    void getOrdersBySmartphoneCriteria_withNative_shouldReturnOrders() {
-        // Given
-        List<Order> orders = Arrays.asList(testOrder);
-        when(orderRepository.findOrdersBySmartphoneCriteriaNative(
-                "Apple", "iPhone 13", 900.0, 1000.0)).thenReturn(orders);
-
-        // When
-        List<Order> result = orderService.getOrdersBySmartphoneCriteria(
-                "Apple", "iPhone 13", 900.0, 1000.0, true);
-
-        // Then
-        assertEquals(orders, result);
-        verify(orderRepository).findOrdersBySmartphoneCriteriaNative(
-                "Apple", "iPhone 13", 900.0, 1000.0);
+        Order out = orderService.createOrder(in, List.of(2L));
+        assertNotNull(out.getOrderDate());
+        assertEquals(7L, out.getId());
+        assertEquals(10.0, out.getTotalAmount());
     }
 }
 

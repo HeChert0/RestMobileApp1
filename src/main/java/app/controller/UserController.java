@@ -150,4 +150,17 @@ public class UserController {
         return ResponseEntity.ok(dtos);
     }
 
+    @PostMapping("/bulk")
+    public ResponseEntity<List<UserDto>> createUsersBulk(
+            @RequestBody List<UserDto> userDtos) {
+        List<UserDto> saved = userDtos.stream()
+                .map(userMapper::toEntity)
+                .map(userService::saveUser)
+                .map(userMapper::toDto)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(saved);
+    }
+
+
 }

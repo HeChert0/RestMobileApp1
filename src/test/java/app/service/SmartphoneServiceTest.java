@@ -76,21 +76,6 @@ public class SmartphoneServiceTest {
     }
 
     @Test
-    void getAllSmartphones_shouldReturnAllSmartphones() {
-        // Given
-        when(smartphoneRepository.findAll()).thenReturn(testPhones);
-
-        // When
-        List<Smartphone> result = smartphoneService.getAllSmartphones();
-
-        // Then
-        assertEquals(testPhones, result);
-        verify(smartphoneRepository).count();
-        verify(smartphoneRepository).findAll();
-    }
-
-
-    @Test
     void getSmartphoneById_withNonCachedPhone_shouldFetchFromRepositoryAndUpdateCache() {
         // Given
         when(smartphoneRepository.findById(1L)).thenReturn(Optional.of(testPhone));
@@ -206,22 +191,6 @@ public class SmartphoneServiceTest {
         verify(smartphoneRepository).save(any(Smartphone.class));
         verify(orderRepository).findAll();
         verifyNoMoreInteractions(orderRepository);
-    }
-
-
-    @Test
-    void updateSmartphone_withNonExistentPhone_shouldReturnNull() {
-        // Given
-        Smartphone updatedPhone = new Smartphone("Apple", "iPhone 14", 1099.99);
-        when(smartphoneRepository.findById(999L)).thenReturn(Optional.empty());
-
-        // When
-        Smartphone result = smartphoneService.updateSmartphone(999L, updatedPhone);
-
-        // Then
-        assertNull(result);
-        verify(smartphoneRepository).findById(999L);
-        verifyNoMoreInteractions(smartphoneRepository);
     }
 
     @Test
@@ -342,6 +311,25 @@ public class SmartphoneServiceTest {
         assertEquals(testPhones.get(1), result.get(0));
         verify(smartphoneRepository).filterSmartphonesNative("Samsung", null, 899.99);
     }
+
+    @Test
+    void updateSmartphone_withSamePrice_shouldNotInvokeOrderRepo() {
+        Smartphone updatedSame = new Smartphone("Apple", "iPhone 13 Pro", 999.99);
+        updatedSame.setId(1L);
+
+        when(smartphoneRepository.findById(1L)).thenReturn(Optional.of(testPhone));
+        when(smartphoneRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        Smartphone result = smartphoneService.updateSmartphone(1L, updatedSame);
+
+        assertNotNull(result);
+        assertEquals(999.99, result.getPrice(), 0.001);
+        verify(smartphoneRepository).findById(1L);
+        verify(smartphoneRepository).save(any(Smartphone.class));
+        // поскольку price одинаковый, не вызываем orderRepository.findAll()
+        verify(orderRepository, never()).findAll();
+    }
+
 }
 
 

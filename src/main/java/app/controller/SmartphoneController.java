@@ -131,4 +131,17 @@ public class SmartphoneController {
         return ResponseEntity.ok(dtos);
     }
 
+    @PostMapping("/bulk")
+    public ResponseEntity<List<SmartphoneDto>> createSmartphonesBulk(
+            @RequestBody List<SmartphoneDto> dtos) {
+        List<SmartphoneDto> saved = dtos.stream()
+                .map(smartphoneMapper::toEntity)
+                .map(smartphoneService::saveSmartphone)
+                .map(smartphoneMapper::toDto)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(saved);
+    }
+
+
 }

@@ -5,6 +5,7 @@ import app.dto.SmartphoneDto;
 import app.mapper.OrderMapper;
 import app.mapper.SmartphoneMapper;
 import app.models.Order;
+import app.models.Smartphone;
 import app.service.OrderService;
 import app.service.SmartphoneService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -187,4 +188,22 @@ public class OrderController {
                 .collect(Collectors.toList());
         return ResponseEntity.ok(dtos);
     }
+
+    @PostMapping("/bulk")
+    public ResponseEntity<List<OrderDto>> createOrdersBulk(
+            @RequestBody List<OrderDto> orderDtos) {
+        List<OrderDto> savedDtos = orderDtos.stream()
+                .map(orderDto -> {
+                    List<Long> smartphoneIds = orderDto.getSmartphoneIds();
+                    Order order = orderMapper.toEntity(orderDto);
+                    Order savedOrder = orderService.createOrder(order, smartphoneIds);
+                    return orderMapper.toDto(savedOrder);
+                })
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(savedDtos);
+    }
+
+
+
 }
