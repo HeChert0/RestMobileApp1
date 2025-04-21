@@ -1,6 +1,6 @@
 package app.config;
 
-import app.interceptors.VisitCounterInterceptor;
+import app.interceptor.VisitCounterInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
