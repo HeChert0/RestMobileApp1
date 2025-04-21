@@ -77,7 +77,9 @@ public class OrderService {
             throw new IllegalArgumentException("Order must be associated with a user");
         }
         User user = userRepository.findById(updatedOrder.getUser().getId())
-                .orElseThrow(() -> new UserNotFoundException("User not found: " + updatedOrder.getUser().getId()));
+                .orElseThrow(() ->
+                        new UserNotFoundException(
+                                "User not found: " + updatedOrder.getUser().getId()));
         existing.setUser(user);
 
         if (smartphoneIds == null || smartphoneIds.isEmpty()) {
@@ -102,7 +104,8 @@ public class OrderService {
     public void deleteOrder(Long id) {
         orderRepository.findById(id).ifPresentOrElse(
                 orderRepository::delete,
-                () -> { throw new OrderNotFoundException("Order not found: " + id); }
+                () -> {
+                    throw new OrderNotFoundException("Order not found: " + id); }
         );
     }
 

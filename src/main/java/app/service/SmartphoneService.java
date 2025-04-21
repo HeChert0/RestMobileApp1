@@ -41,6 +41,7 @@ public class SmartphoneService {
         return smartphoneRepository.save(smartphone);
     }
 
+    @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
     @Caching(
             put = @CachePut(value = "smartphones", key = "#id"),
             evict = @CacheEvict(value = "smartphones", allEntries = true)
@@ -48,38 +49,38 @@ public class SmartphoneService {
     @Transactional
     public Smartphone updateSmartphone(Long id, Smartphone updated) {
         return smartphoneRepository.findById(id)
-                .map(existing -> {
-                    double oldPrice = existing.getPrice();
-                    existing.setBrand(updated.getBrand());
-                    existing.setModel(updated.getModel());
-                    existing.setPrice(updated.getPrice());
-                    Smartphone saved = smartphoneRepository.save(existing);
+            .map(existing -> {
+                double oldPrice = existing.getPrice();
+                existing.setBrand(updated.getBrand());
+                existing.setModel(updated.getModel());
+                existing.setPrice(updated.getPrice());
+                Smartphone saved = smartphoneRepository.save(existing);
 
-                    // логика обновления заказов при смене цены...
-                    if (oldPrice != saved.getPrice()) {
-                        orderRepository.findAll().stream()
-                                .filter(o -> o.getSmartphones().stream()
-                                        .anyMatch(p -> p.getId().equals(saved.getId())))
-                                .forEach(o -> {
-                                    o.setTotalAmount(
-                                            o.getSmartphones().stream()
-                                                    .mapToDouble(p -> p.getId().equals(saved.getId())
-                                                            ? saved.getPrice()
-                                                            : p.getPrice())
-                                                    .sum()
-                                    );
-                                    orderRepository.save(o);
-                                });
-                    }
-                    return saved;
-                })
+                // логика обновления заказов при смене цены...
+                if (oldPrice != saved.getPrice()) {
+                    orderRepository.findAll().stream()
+                            .filter(o -> o.getSmartphones().stream()
+                                    .anyMatch(p -> p.getId().equals(saved.getId())))
+                            .forEach(o -> {
+                                o.setTotalAmount(
+                                        o.getSmartphones().stream()
+                                                .mapToDouble(p -> p.getId().equals(saved.getId())
+                                                        ? saved.getPrice()
+                                                        : p.getPrice())
+                                                .sum()
+                                );
+                                orderRepository.save(o);
+                            });
+                }
+                return saved;
+            })
                 .orElseThrow(() -> new IllegalArgumentException("Smartphone not found: " + id));
     }
 
     @Caching(
             evict = {
-                    @CacheEvict(value = "smartphones", key = "#id"),
-                    @CacheEvict(value = "smartphones", allEntries = true)
+                @CacheEvict(value = "smartphones", key = "#id"),
+                @CacheEvict(value = "smartphones", allEntries = true)
             }
     )
     @Transactional
