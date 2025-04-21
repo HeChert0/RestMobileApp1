@@ -62,14 +62,11 @@ public class UserServiceTest {
 
     @Test
     void getAllUsers_shouldReturnAllUsers() {
-        // Given
         when(userRepository.findAll()).thenReturn(testUsers);
         when(userRepository.count()).thenReturn(2L);
 
-        // When
         List<User> result = userService.getAllUsers();
 
-        // Then
         assertEquals(testUsers, result);
         verify(userRepository).count();
         verify(userRepository).findAll();
@@ -77,13 +74,10 @@ public class UserServiceTest {
 
     @Test
     void getUserById_withCachedUser_shouldReturnUserFromCache() {
-        // Given
         when(userCache.get(1L)).thenReturn(testUser);
 
-        // When
         Optional<User> result = userService.getUserById(1L);
 
-        // Then
         assertTrue(result.isPresent());
         assertEquals(testUser, result.get());
         verify(userCache).get(1L);
@@ -92,14 +86,11 @@ public class UserServiceTest {
 
     @Test
     void getUserById_withNonCachedUser_shouldFetchFromRepositoryAndUpdateCache() {
-        // Given
         when(userCache.get(1L)).thenReturn(null);
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
 
-        // When
         Optional<User> result = userService.getUserById(1L);
 
-        // Then
         assertTrue(result.isPresent());
         assertEquals(testUser, result.get());
         verify(userCache).get(1L);
@@ -109,14 +100,11 @@ public class UserServiceTest {
 
     @Test
     void getUserById_withNonExistentUser_shouldReturnEmpty() {
-        // Given
         when(userCache.get(999L)).thenReturn(null);
         when(userRepository.findById(999L)).thenReturn(Optional.empty());
 
-        // When
         Optional<User> result = userService.getUserById(999L);
 
-        // Then
         assertFalse(result.isPresent());
         verify(userCache).get(999L);
         verify(userRepository).findById(999L);
@@ -125,13 +113,10 @@ public class UserServiceTest {
 
     @Test
     void getUserDetails_withExistingUser_shouldReturnUserWithOrders() {
-        // Given
         when(userRepository.findWithOrdersById(1L)).thenReturn(Optional.of(testUser));
 
-        // When
         Optional<User> result = userService.getUserDetails(1L);
 
-        // Then
         assertTrue(result.isPresent());
         assertEquals(testUser, result.get());
         verify(userRepository).findWithOrdersById(1L);
@@ -140,20 +125,16 @@ public class UserServiceTest {
 
     @Test
     void getUserDetails_withNonExistentUser_shouldReturnEmpty() {
-        // Given
         when(userRepository.findWithOrdersById(999L)).thenReturn(Optional.empty());
 
-        // When
         Optional<User> result = userService.getUserDetails(999L);
 
-        // Then
         assertFalse(result.isPresent());
         verify(userRepository).findWithOrdersById(999L);
     }
 
     @Test
     void saveUser_shouldSuccessfullyCreateUser() {
-        // Given
         User newUser = new User();
         newUser.setUsername("newUser");
         newUser.setPassword("rawPassword");
@@ -165,10 +146,8 @@ public class UserServiceTest {
             return savedUser;
         });
 
-        // When
         User result = userService.saveUser(newUser);
 
-        // Then
         assertEquals(3L, result.getId());
         assertEquals("newUser", result.getUsername());
         assertEquals("encodedPassword", result.getPassword());
@@ -187,7 +166,6 @@ public class UserServiceTest {
 
     @Test
     void updateUser_withExistingUser_shouldUpdateUser() {
-        // Given
         User updatedUser = new User();
         updatedUser.setUsername("updatedUsername");
         updatedUser.setPassword("newPassword");
@@ -196,10 +174,8 @@ public class UserServiceTest {
         when(passwordEncoder.encode("newPassword")).thenReturn("encodedNewPassword");
         when(userRepository.save(any(User.class))).thenReturn(testUser);
 
-        // When
         User result = userService.updateUser(1L, updatedUser);
 
-        // Then
         assertNotNull(result);
         assertEquals(1L, result.getId());
         assertEquals("updatedUsername", result.getUsername());
@@ -221,7 +197,6 @@ public class UserServiceTest {
 
     @Test
     void updateUser_withEmptyPassword_shouldNotUpdatePassword() {
-        // Given
         User updatedUser = new User();
         updatedUser.setUsername("updatedUsername");
         updatedUser.setPassword(""); // пустой пароль
@@ -229,31 +204,26 @@ public class UserServiceTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(userRepository.save(any(User.class))).thenReturn(testUser);
 
-        // When
         User result = userService.updateUser(1L, updatedUser);
 
-        // Then
         assertNotNull(result);
         assertEquals("updatedUsername", result.getUsername());
-        assertEquals("password", result.getPassword()); // пароль не должен быть изменен
+        assertEquals("password", result.getPassword());
 
         verify(userRepository).findById(1L);
         verify(userRepository).save(any(User.class));
-        verifyNoInteractions(passwordEncoder); // не должно быть вызовов кодировщика
+        verifyNoInteractions(passwordEncoder);
     }
 
     @Test
     void updateUser_withNonExistentUser_shouldReturnNull() {
-        // Given
         User updatedUser = new User();
         updatedUser.setUsername("updatedUsername");
 
         when(userRepository.findById(999L)).thenReturn(Optional.empty());
 
-        // When
         User result = userService.updateUser(999L, updatedUser);
 
-        // Then
         assertNull(result);
         verify(userRepository).findById(999L);
         verifyNoMoreInteractions(passwordEncoder, userRepository, userCache);
@@ -261,11 +231,9 @@ public class UserServiceTest {
 
     @Test
     void deleteUser_withExistingUser_shouldDeleteSuccessfully() {
-        // Given
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         doNothing().when(userRepository).delete(testUser);
 
-        // When & Then
         assertDoesNotThrow(() -> userService.deleteUser(1L));
 
         verify(userRepository).findById(1L);
@@ -275,10 +243,8 @@ public class UserServiceTest {
 
     @Test
     void deleteUser_withNonExistentUser_shouldThrowException() {
-        // Given
         when(userRepository.findById(999L)).thenReturn(Optional.empty());
 
-        // When & Then
         UserNotFoundException exception = assertThrows(
                 UserNotFoundException.class,
                 () -> userService.deleteUser(999L)
@@ -291,13 +257,10 @@ public class UserServiceTest {
 
     @Test
     void loadUserByUsername_withExistingUsername_shouldReturnUserDetails() {
-        // Given
         when(userRepository.findByUsername("testUser")).thenReturn(Optional.of(testUser));
 
-        // When
         UserDetails result = userService.loadUserByUsername("testUser");
 
-        // Then
         assertNotNull(result);
         assertEquals("testUser", result.getUsername());
         assertEquals("password", result.getPassword());
@@ -306,10 +269,8 @@ public class UserServiceTest {
 
     @Test
     void loadUserByUsername_withNonExistentUsername_shouldThrowException() {
-        // Given
         when(userRepository.findByUsername("nonExistent")).thenReturn(Optional.empty());
 
-        // When & Then
         UsernameNotFoundException exception = assertThrows(
                 UsernameNotFoundException.class,
                 () -> userService.loadUserByUsername("nonExistent")
@@ -321,7 +282,6 @@ public class UserServiceTest {
 
     @Test
     void getUsersByOrderAndPhoneCriteria_withJpqlQuery_shouldReturnMatchingUsers() {
-        // Given
         LocalDate orderDate = LocalDate.of(2023, 6, 1);
         Double minTotal = 1000.0;
         String phoneBrand = "Apple";
@@ -330,10 +290,8 @@ public class UserServiceTest {
         when(userRepository.findUsersByOrderAndPhoneCriteriaJpql(minTotal, phoneBrand, orderDate))
                 .thenReturn(testUsers);
 
-        // When
         List<User> result = userService.getUsersByOrderAndPhoneCriteria(minTotal, phoneBrand, orderDate, nativeQuery);
 
-        // Then
         assertEquals(2, result.size());
         assertEquals(testUsers, result);
 
@@ -344,7 +302,6 @@ public class UserServiceTest {
 
     @Test
     void getUsersByOrderAndPhoneCriteria_withNativeQuery_shouldReturnMatchingUsers() {
-        // Given
         LocalDate orderDate = LocalDate.of(2023, 6, 1);
         Double minTotal = 1000.0;
         String phoneBrand = "Apple";
@@ -353,10 +310,8 @@ public class UserServiceTest {
         when(userRepository.findUsersByOrderAndPhoneCriteriaNative(minTotal, phoneBrand, orderDate))
                 .thenReturn(testUsers);
 
-        // When
         List<User> result = userService.getUsersByOrderAndPhoneCriteria(minTotal, phoneBrand, orderDate, nativeQuery);
 
-        // Then
         assertEquals(2, result.size());
         assertEquals(testUsers, result);
 

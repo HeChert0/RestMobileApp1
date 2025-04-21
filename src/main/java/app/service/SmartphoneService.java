@@ -56,7 +56,6 @@ public class SmartphoneService {
                 existing.setPrice(updated.getPrice());
                 Smartphone saved = smartphoneRepository.save(existing);
 
-                // логика обновления заказов при смене цены...
                 if (oldPrice != saved.getPrice()) {
                     orderRepository.findAll().stream()
                             .filter(o -> o.getSmartphones().stream()

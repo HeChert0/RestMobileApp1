@@ -37,14 +37,13 @@ public class LogController {
     @Value("${logging.file.name}")
     private String logFilePath;
 
-    // Хранилище задач и статусов
     private final ConcurrentHashMap<String, LogTask> tasks = new ConcurrentHashMap<>();
     private final ExecutorService asyncExecutor = Executors.newCachedThreadPool();
 
     @Data
     @AllArgsConstructor
     private static class LogTask {
-        private String status; // "PROCESSING", "COMPLETED", "FAILED"
+        private String status; // PROCESSING COMPLETED FAILED
         private Path tempFile;
         private LocalDate date;
     }
@@ -70,7 +69,6 @@ public class LogController {
         if (existing.isPresent()) {
             LogTask t = existing.get().getValue();
             if ("PROCESSING".equals(t.getStatus())) {
-                // повторный запрос на время ожидания
                 return ResponseEntity.status(HttpStatus.CONFLICT)
                         .body("Task for date " + (date != null ? date : "all") + " is still processing");
             } else {
@@ -123,13 +121,11 @@ public class LogController {
     public ResponseEntity<Resource> downloadAsync(@PathVariable String taskId) throws IOException {
         LogTask task = tasks.get(taskId);
         if (task == null) {
-            // Нет такой задачи
             return ResponseEntity.notFound().build();
         }
 
         String status = task.getStatus();
         if (!"COMPLETED".equals(status)) {
-            // Пока не готово — 202 Accepted с телом-описанием статуса
             return ResponseEntity
                     .status(HttpStatus.ACCEPTED)
                     .body(new ByteArrayResource(
@@ -137,19 +133,15 @@ public class LogController {
                     ));
         }
 
-        // Файл готов — берём из задачи
         Path tmpFile = task.getTempFile();
         if (tmpFile == null || !Files.exists(tmpFile)) {
-            // Что‑то пошло не так с файлом
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
-        // Загружаем ресурс
         ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(tmpFile));
         String dateStr = task.getDate() != null ? task.getDate().toString() : "all";
         String filename = "logs-" + dateStr + ".txt";
 
-        // Удаляем временный файл и запись о задаче
         Files.delete(tmpFile);
         tasks.remove(taskId);
 
