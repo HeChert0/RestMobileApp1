@@ -185,7 +185,9 @@ public class OrderServiceTest {
         User newU = new User(); newU.setId(2L);
         when(userRepository.findById(2L)).thenReturn(Optional.of(newU));
         // новый смартфон
-        Smartphone s = new Smartphone(); s.setId(50L); s.setPrice(25.);
+        Smartphone s = new Smartphone();
+        s.setId(50L);
+        s.setPrice(25.);
         when(smartphoneRepository.findById(50L)).thenReturn(Optional.of(s));
         when(orderRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
@@ -208,7 +210,8 @@ public class OrderServiceTest {
     void updateOrder_deleteAllSmartphones_returnsNull() {
         Order existing = new Order();
         existing.setId(1L);
-        existing.setUser(new User()); existing.getUser().setId(1L);
+        existing.setUser(new User());
+        existing.getUser().setId(1L);
         when(orderRepository.findById(1L)).thenReturn(Optional.of(existing));
         User u = new User(); u.setId(1L);
         when(userRepository.findById(1L)).thenReturn(Optional.of(u));

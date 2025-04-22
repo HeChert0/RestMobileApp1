@@ -18,7 +18,7 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addInterceptor(visitCounterInterceptor)
                 .addPathPatterns("/**")
                 .excludePathPatterns(
-                        "/visits/**",
+                        "/stats/**",
                         "/error",
                         "/static/**",
                         "/webjars/**",

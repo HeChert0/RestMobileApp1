@@ -1,6 +1,6 @@
 package app.interceptor;
 
-import app.interceptor.VisitCounterService;
+import app.service.VisitCounterService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;

@@ -1,13 +1,13 @@
 package app.controller;
 
-import app.interceptor.VisitCounterService;
+import app.service.VisitCounterService;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/visits")
+@RequestMapping("/stats")
 @RequiredArgsConstructor
 public class VisitCounterController {
     private final VisitCounterService visitCounterService;
