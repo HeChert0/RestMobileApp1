@@ -18,7 +18,7 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addInterceptor(visitCounterInterceptor)
                 .addPathPatterns("/**")
                 .excludePathPatterns(
-                        "/stats/**",
+                        "/api/stats/**",
                         "/error",
                         "/static/**",
                         "/webjars/**",
@@ -34,8 +34,8 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
-                .allowedOrigins("http://localhost:3000") // React порт
+        registry.addMapping("/api/**")
+                .allowedOrigins("http://localhost:3000") // React
                 .allowedMethods("*")
                 .allowedHeaders("*")
                 .allowCredentials(true);

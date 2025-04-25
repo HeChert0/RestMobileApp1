@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/stats")
+@RequestMapping("/api/stats")
 @RequiredArgsConstructor
 public class VisitCounterController {
     private final VisitCounterService visitCounterService;
