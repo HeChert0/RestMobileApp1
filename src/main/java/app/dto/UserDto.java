@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.util.List;
+import app.dto.OnCreate;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class UserDto {
@@ -14,7 +15,7 @@ public class UserDto {
     @Size(min = 2, max = 50, message = "Username must be between 2 and 50 characters")
     private String username;
 
-    @NotBlank(message = "Password cannot be blank")
+    @NotBlank(message = "Password cannot be blank", groups = OnCreate.class)
     private String password;
 
     @JsonIgnore

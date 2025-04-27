@@ -16,14 +16,20 @@ const theme = createTheme({
             secondary: { main: '#4CAF50', contrastText: '#000000' },
         },
       components: {
-        MuiOutlinedInput: {
-              styleOverrides: {
-                    root: {
-                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                borderColor: '#4CAF50',          // зелёная обводка
-                                  },
-                        },
-                  },
+            MuiOutlinedInput: {
+                styleOverrides: {
+                    input: {
+                       // откл спиннер в Chrome/Safari
+                           '&::-webkit-outer-spin-button, &::-webkit-inner-spin-button': {
+                             '-webkit-appearance': 'none',
+                                 margin: 0,
+                               },
+                       //в Firefox
+                           '&[type=number]': {
+                             '-moz-appearance': 'textfield',
+                               },
+                    },
+                },
             },
         MuiInputLabel: {
               styleOverrides: {

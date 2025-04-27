@@ -13,14 +13,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@CacheConfig(cacheNames = {"orders"})
 public class OrderService {
 
     private final OrderRepository orderRepository;
@@ -38,7 +37,10 @@ public class OrderService {
         return orderRepository.findById(id);
     }
 
-    @CachePut(value = "orders", key = "#result.id")
+    @Caching(
+            put = @CachePut(key = "#result.id"),
+            evict = @CacheEvict(cacheNames = "users", key = "#order.user.id")
+    )
     @Transactional
     public Order createOrder(Order order, List<Long> smartphoneIds) {
         if (order.getUser() == null || order.getUser().getId() == null) {
@@ -63,8 +65,10 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
-    @CachePut(value = "orders", key = "#id")
-    @CacheEvict(value = "orders", key = "#id", condition = "#savedOrder == null")
+    @Caching(
+            put = @CachePut(key = "#id"),
+            evict = @CacheEvict(cacheNames = "users", key = "#updatedOrder.user.id")
+    )
     @Transactional
     public Order updateOrder(Long id, Order updatedOrder, List<Long> smartphoneIds) {
         Order existing = orderRepository.findById(id)
@@ -99,7 +103,12 @@ public class OrderService {
         return savedOrder;
     }
 
-    @CacheEvict(value = "orders", key = "#id")
+    @Caching(
+            evict = {
+                    @CacheEvict(key = "#id"),
+                    @CacheEvict(cacheNames = "users", key = "#userIdBeforeDelete")
+            }
+    )
     @Transactional
     public void deleteOrder(Long id) {
         orderRepository.findById(id).ifPresentOrElse(

@@ -50,22 +50,10 @@ export default function NavBar() {
                             open={Boolean(anchorEl[key])}
                             onClose={() => handleClose(key)}
                         >
-                            <MenuItem
-                                onClick={() => {
-                                    navigate(base);
-                                    handleClose(key);
-                                }}
-                            >
-                                Список
-                            </MenuItem>
-                            <MenuItem
-                                onClick={() => {
-                                    navigate(`${base}/new`);
-                                    handleClose(key);
-                                }}
-                            >
-                                Добавить
-                            </MenuItem>
+                            <MenuItem onClick={() => { navigate(base);             handleClose(key); }}>Список</MenuItem>
+                            <MenuItem onClick={() => { navigate(`${base}/new`);    handleClose(key); }}>Добавить</MenuItem>
+                            <MenuItem onClick={() => { navigate(`${base}/update`); handleClose(key); }}>Обновить</MenuItem>
+                            <MenuItem onClick={() => { navigate(`${base}/delete`); handleClose(key); }}>Удалить</MenuItem>
                         </Menu>
                     </React.Fragment>)
             })}

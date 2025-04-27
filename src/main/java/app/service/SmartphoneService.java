@@ -7,15 +7,13 @@ import app.models.Smartphone;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
+import org.springframework.cache.annotation.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@CacheConfig(cacheNames = "smartphones")
 public class SmartphoneService {
 
     private final SmartphoneRepository smartphoneRepository;
@@ -43,8 +41,12 @@ public class SmartphoneService {
 
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
     @Caching(
-            put = @CachePut(value = "smartphones", key = "#id"),
-            evict = @CacheEvict(value = "smartphones", allEntries = true)
+            put = @CachePut(key = "#id"),
+            evict = {
+                    @CacheEvict(allEntries = true),                     // чистим кэш смартфонов
+                    @CacheEvict(cacheNames = "orders", allEntries = true),  // опционально: сбросить кэш заказов
+                    @CacheEvict(cacheNames = "users",  allEntries = true)   // сбросить кэш пользователей
+            }
     )
     @Transactional
     public Smartphone updateSmartphone(Long id, Smartphone updated) {
@@ -78,8 +80,10 @@ public class SmartphoneService {
 
     @Caching(
             evict = {
-                @CacheEvict(value = "smartphones", key = "#id"),
-                @CacheEvict(value = "smartphones", allEntries = true)
+                    @CacheEvict(key = "#id"),                               // удалить его из кэша смартфонов
+                    @CacheEvict(allEntries = true),                         // очистить кэш смартфонов целиком
+                    @CacheEvict(cacheNames = "orders", allEntries = true),  // опционально: сбросить кэш заказов
+                    @CacheEvict(cacheNames = "users",  allEntries = true)   // сбросить кэш пользователей
             }
     )
     @Transactional

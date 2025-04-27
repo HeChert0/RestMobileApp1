@@ -15,3 +15,6 @@ export const getAllPhones = async () => {
         throw err;
     }
 };
+export const createPhone = data => axios.post(BASE_URL, data).then(res => res.data);
+export const updatePhone = (id, data) => axios.put(`${BASE_URL}/${id}`, data).then(res => res.data);
+export const deletePhone = id => axios.delete(`${BASE_URL}/${id}`);

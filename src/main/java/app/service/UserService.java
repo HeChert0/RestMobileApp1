@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -38,13 +39,9 @@ public class UserService implements UserDetailsService {
     }
 
 
+    @Cacheable(value = "users", key = "#id")
     public Optional<User> getUserById(Long id) {
-        User cachedUser = userCache.get(id);
-        if (cachedUser != null) {
-            return Optional.of(cachedUser);
-        }
         Optional<User> userOpt = userRepository.findById(id);
-        userOpt.ifPresent(user -> userCache.put(id, user));
         return userOpt;
     }
 
