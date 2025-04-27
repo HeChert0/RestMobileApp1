@@ -19,8 +19,8 @@ function App() {
                 <Routes>
                     <Route path="/" element={<Navigate to="/phones" replace />} />
                     <Route path="/phones" element={<PhoneList />} />
-                    <Route path="/orders" element={<OrdersList />} />
                     <Route path="/phones/new" element={<AddPhone />} />
+                    <Route path="/orders" element={<OrdersList />} />
                     <Route path="/users"      element={<UsersCardList />} />
                     <Route path="/users/new"  element={<AddUser />}  />
                     <Route path="/users/:id"  element={<UserDetail />} />

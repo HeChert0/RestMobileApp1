@@ -1,86 +1,130 @@
 // ui/src/components/OrdersList.js
 import React, { useEffect, useState } from 'react';
-import { getAllOrders } from '../services/orderService';
 import {
-    Table, TableBody, TableCell, TableContainer,
-    TableHead, TableRow, Paper, Collapse, IconButton
+    TextField, Button, Select, MenuItem,
+    Pagination, Stack, Container, Accordion,
+    AccordionSummary, AccordionDetails, Typography
 } from '@mui/material';
-import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { getAllOrders } from '../services/orderService';
+import { getAllUsers } from '../services/userService';
 
 export default function OrdersList() {
-    const [orders, setOrders] = useState([]);
+    const [all, setAll] = useState([]);
+    const [filtered, setFiltered] = useState([]);
+    const [usersMap, setUsersMap] = useState({}); // id → username
+
+    const [page, setPage] = useState(1);
+    const [rowsPerPage, setRowsPerPage] = useState(5);
+
+    // теперь фильтр по username
+    const [username, setUsername] = useState('');
 
     useEffect(() => {
-        getAllOrders().then(setOrders).catch(console.error);
+        // параллельно подтягиваем заказы и мапу пользователей
+        getAllOrders().then(data => {
+            setAll(data);
+            setFiltered(data);
+        });
+        getAllUsers().then(users => {
+            const m = {};
+            users.forEach(u => { m[u.id] = u.username; });
+            setUsersMap(m);
+        });
     }, []);
 
-    return (
-        <TableContainer component={Paper} sx={{ mt: 4 }}>
-            <Table>
-                <TableHead>
-                    <TableRow>
-                        <TableCell />
-                        <TableCell>ID</TableCell>
-                        <TableCell>User ID</TableCell>
-                        <TableCell>Дата</TableCell>
-                        <TableCell align="right">Сумма</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {orders.map(o => (
-                        <OrderRow key={o.id} order={o} />
-                    ))}
-                </TableBody>
-            </Table>
-        </TableContainer>
-    );
-}
+    const handleSearch = () => {
+        let tmp = all;
+        if (username) {
+            tmp = tmp.filter(o =>
+                (usersMap[o.userId] || '')
+                    .toLowerCase()
+                    .includes(username.toLowerCase())
+            );
+        }
+        setFiltered(tmp);
+        setPage(1);
+    };
+    const handleReset = () => {
+        setUsername('');
+        setFiltered(all);
+        setPage(1);
+    };
 
-function OrderRow({ order }) {
-    const [open, setOpen] = useState(false);
+    // пагинация
+    const start = (page - 1) * rowsPerPage;
+    const current = filtered.slice(start, start + rowsPerPage);
+    const pageCount = Math.ceil(filtered.length / rowsPerPage);
+
     return (
-        <>
-            <TableRow>
-                <TableCell>
-                    <IconButton size="small" onClick={() => setOpen(o => !o)}>
-                        {open ? <KeyboardArrowUp /> : <KeyboardArrowDown />}
-                    </IconButton>
-                </TableCell>
-                <TableCell>{order.id}</TableCell>
-                <TableCell>{order.userId}</TableCell>
-                <TableCell>{order.orderDate}</TableCell>
-                <TableCell align="right">
-                    {order.totalAmount.toFixed(2)}
-                </TableCell>
-            </TableRow>
-            <TableRow>
-                <TableCell colSpan={5} sx={{ p: 0, border: 0 }}>
-                    <Collapse in={open}>
-                        <Table size="small">
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell>Phone ID</TableCell>
-                                    <TableCell>Brand</TableCell>
-                                    <TableCell>Model</TableCell>
-                                    <TableCell align="right">Price</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {order.smartphones.map(p => (
-                                    <TableRow key={p.id}>
-                                        <TableCell>{p.id}</TableCell>
-                                        <TableCell>{p.brand}</TableCell>
-                                        <TableCell>{p.model}</TableCell>
-                                        <TableCell align="right">
-                                            {p.price.toFixed(2)}
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </Collapse>
-                </TableCell>
-            </TableRow>
-        </>
+        <Container sx={{ mt: 4 }}>
+            {/* Фильтр по username */}
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} mb={2}>
+                <TextField
+                    label="Username"
+                    value={username}
+                    onChange={e => setUsername(e.target.value)}
+                />
+                <Button variant="contained" color="secondary" onClick={handleSearch}>
+                    Поиск
+                </Button>
+                <Button variant="contained" color="secondary" onClick={handleReset}>
+                    Сброс
+                </Button>
+            </Stack>
+
+            {/* Список заказов */}
+            {current.map(order => (
+                <Accordion key={order.id} sx={{ mb: 1 }}>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <Typography>
+                            Заказ #{order.id} — {usersMap[order.userId]} — $
+                            {order.totalAmount.toFixed(2)}
+                        </Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                        <Typography variant="subtitle1" gutterBottom>
+                            Телефоны в заказе:
+                        </Typography>
+                        {order.smartphones.map(p => (
+                            <Typography key={p.id}>
+                                — {p.brand} {p.model} (${p.price.toFixed(2)})
+                            </Typography>
+                        ))}
+                    </AccordionDetails>
+                </Accordion>
+            ))}
+
+            {/* Пагинация */}
+            <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+                mt={2}
+            >
+                <Pagination
+                    count={pageCount}
+                    page={page}
+                    onChange={(e, v) => setPage(v)}
+                />
+                <Stack direction="row" spacing={1} alignItems="center">
+                    <span>На странице:</span>
+                    <TextField
+                        select
+                        size="small"
+                        value={rowsPerPage}
+                        onChange={e => {
+                            setRowsPerPage(+e.target.value);
+                            setPage(1);
+                        }}
+                        sx={{ width: 80 }}
+                    >
+                        {[5, 10, 25, 50].map(n => (
+                            <MenuItem key={n} value={n}>{n}</MenuItem>
+                        ))}
+                    </TextField>
+                </Stack>
+            </Stack>
+        </Container>
     );
 }

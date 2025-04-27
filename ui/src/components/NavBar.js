@@ -4,10 +4,11 @@ import {
     AppBar, Toolbar, Typography, Button,
     Menu, MenuItem
 } from '@mui/material';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate, useLocation  } from 'react-router-dom';
 
 export default function NavBar() {
     const navigate = useNavigate();
+    const location = useLocation();
     const [anchorEl, setAnchorEl] = useState({});
 
     const handleOpen = (event, key) => {
@@ -31,10 +32,15 @@ export default function NavBar() {
                     MobileApp
                 </Typography>
 
-                {entities.map(({ key, label, base }) => (
-                    <React.Fragment key={key}>
+                {entities.map(({ key, label, base }) => {
+                    const isActive = location.pathname.startsWith(base);
+                    return (<React.Fragment key={key}>
                         <Button
-                            color="inherit"
+                               color={isActive ? 'secondary' : 'inherit'}
+                               sx={{
+                                 fontWeight: isActive ? 'bold' : 'normal',
+                                 textTransform: 'none'
+                               }}
                             onClick={e => handleOpen(e, key)}
                         >
                             {label}
@@ -61,8 +67,8 @@ export default function NavBar() {
                                 Добавить
                             </MenuItem>
                         </Menu>
-                    </React.Fragment>
-                ))}
+                    </React.Fragment>)
+            })}
             </Toolbar>
         </AppBar>
     );

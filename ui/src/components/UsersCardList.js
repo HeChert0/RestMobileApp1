@@ -19,16 +19,30 @@ export default function UsersCardList() {
     }, []);
 
     return (
-        <Grid container spacing={2} sx={{ mt: 4 }}>
+        <Grid
+            container
+            spacing={3}
+            sx={{ mt: 4, px: 3 }}
+            justifyContent="flex-start"
+        >
             {users.map(user => (
-                <Grid item xs={12} sm={6} md={4} lg={3} key={user.id}>
-                    <Card>
+                <Grid item xs="auto" key={user.id}>
+                    <Card
+                        sx={{
+                            width: 350,
+                            height: 240,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center',
+                            p: 2,
+                        }}
+                    >
                         <CardActionArea onClick={() => navigate(`/users/${user.id}`)}>
                             <CardContent>
-                                <Typography variant="h6" gutterBottom>
+                                <Typography variant="h4" gutterBottom>
                                     {user.username}
                                 </Typography>
-                                <Typography variant="body2" color="text.secondary">
+                                <Typography variant="h6" color="text.secondary">
                                     Заказов: {user.orders.length}
                                 </Typography>
                             </CardContent>
