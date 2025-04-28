@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Box, Typography, Button, Stack, MenuItem, TextField } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { getAllUsers, deleteUser } from '../services/userService';
-import { modalStyle } from './modalStyle';
+import { getAllUsers, deleteUser } from '../../services/userService';
+import { modalStyle } from '../modalStyle';
 
 export default function DeleteUserModal() {
     const navigate = useNavigate();

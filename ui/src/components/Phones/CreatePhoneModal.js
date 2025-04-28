@@ -2,8 +2,8 @@
 import React, { useState } from 'react';
 import { Modal, Box, Typography, TextField, Button, Stack } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { createPhone } from '../services/phoneService';
-import { modalStyle } from './modalStyle';
+import { createPhone } from '../../services/phoneService';
+import { modalStyle } from '../modalStyle';
 
 export default function CreatePhoneModal() {
     const navigate = useNavigate();

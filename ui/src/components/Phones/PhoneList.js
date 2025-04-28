@@ -1,6 +1,6 @@
 // ui/src/components/PhoneList.js
 import React, { useEffect, useState } from 'react';
-import { getAllPhones } from '../services/phoneService';
+import { getAllPhones } from '../../services/phoneService';
 import {
     Table, TableBody, TableCell, TableContainer,
     TableHead, TableRow, Paper, TextField,

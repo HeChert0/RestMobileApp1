@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Box, Typography, TextField, Button, Stack, MenuItem } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { getAllUsers, updateUser } from '../services/userService';
-import { modalStyle } from './modalStyle';
+import { getAllUsers, updateUser } from '../../services/userService';
+import { modalStyle } from '../modalStyle';
 
 export default function UpdateUserModal() {
     const navigate = useNavigate();

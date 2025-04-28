@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Box, Typography, Button, Stack, MenuItem, TextField } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { getAllOrders, deleteOrder } from '../services/orderService';
-import { modalStyle } from './modalStyle';
+import { getAllOrders, deleteOrder } from '../../services/orderService';
+import { modalStyle } from '../modalStyle';
 
 export default function DeleteOrderModal() {
     const navigate = useNavigate();

@@ -1,6 +1,6 @@
 // ui/src/components/UsersList.js
 import React, { useEffect, useState } from 'react';
-import { getAllUsers } from '../services/userService';
+import { getAllUsers } from '../../services/userService';
 import {
     Table, TableBody, TableCell, TableContainer,
     TableHead, TableRow, Paper, Collapse, IconButton

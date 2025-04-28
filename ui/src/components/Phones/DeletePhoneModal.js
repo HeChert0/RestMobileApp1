@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Box, Typography, Button, Stack, MenuItem, TextField } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { getAllPhones, deletePhone } from '../services/phoneService';
-import { modalStyle } from './modalStyle';
+import { getAllPhones, deletePhone } from '../../services/phoneService';
+import { modalStyle } from '../modalStyle';
 
 export default function DeletePhoneModal() {
     const navigate = useNavigate();

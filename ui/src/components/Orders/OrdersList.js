@@ -6,8 +6,9 @@ import {
     AccordionSummary, AccordionDetails, Typography
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { getAllOrders } from '../services/orderService';
-import { getAllUsers } from '../services/userService';
+import { getAllOrders } from '../../services/orderService';
+import { getAllUsers } from '../../services/userService';
+import BulkOperationsToolbar from '../BulkOperationsToolbar';
 
 export default function OrdersList() {
     const [all, setAll] = useState([]);
@@ -59,6 +60,7 @@ export default function OrdersList() {
     return (
         <Container sx={{ mt: 4 }}>
             {/* Фильтр по username */}
+            <BulkOperationsToolbar basePath="/orders" />
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} mb={2}>
                 <TextField
                     label="Username"

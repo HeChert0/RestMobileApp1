@@ -2,8 +2,8 @@
 import React, { useState } from 'react';
 import { Modal, Box, Typography, TextField, Button, Stack } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { createUser } from '../services/userService';
-import { modalStyle } from './modalStyle';
+import { createUser } from '../../services/userService';
+import { modalStyle } from '../modalStyle';
 
 export default function CreateUserModal() {
     const [username, setUsername] = useState('');

@@ -3,10 +3,10 @@ import React, { useState, useEffect } from 'react';
 import { Modal, Box, Typography, TextField, Button, Stack, MenuItem, Chip } from '@mui/material';
 import Autocomplete from '@mui/material/Autocomplete';
 import { useNavigate } from 'react-router-dom';
-import { getAllOrders, updateOrder } from '../services/orderService';
-import { getAllUsers } from '../services/userService';
-import { getAllPhones } from '../services/phoneService';
-import { modalStyle } from './modalStyle';
+import { getAllOrders, updateOrder } from '../../services/orderService';
+import { getAllUsers } from '../../services/userService';
+import { getAllPhones } from '../../services/phoneService';
+import { modalStyle } from '../modalStyle';
 
 export default function UpdateOrderModal() {
     const navigate = useNavigate();
