@@ -16,7 +16,12 @@ export default function DeleteOrderModal() {
 
     const handleClose = () => navigate('/orders');
     const handleDelete = async () => {
-        await deleteOrder(selectedId);
+        const idNum = parseInt(selectedId, 10);
+        if (isNaN(idNum)) {
+            console.error('Неверный ID для удаления заказа:', selectedId);
+            return;
+        }
+        await deleteOrder(idNum);
         handleClose();
         window.location.reload();
     };

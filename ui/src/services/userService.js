@@ -7,3 +7,5 @@ export const getAllUsers = () =>
 export const createUser    = data => axios.post(BASE_URL, data).then(res => res.data);
 export const updateUser    = (id, data) => axios.put(`${BASE_URL}/${id}`, data).then(res => res.data);
 export const deleteUser    = id => axios.delete(`${BASE_URL}/${id}`);
+export const createUsersBulk = data =>
+    axios.post(`${BASE_URL}/bulk`, data).then(res => res.data);

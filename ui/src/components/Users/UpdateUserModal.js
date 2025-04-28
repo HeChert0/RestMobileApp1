@@ -11,12 +11,13 @@ export default function UpdateUserModal() {
     const [selectedId, setSelectedId] = useState('');
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [errors, setErrors] = useState({});
+    const [loading, setLoading] = useState(false)
 
     useEffect(() => {
         getAllUsers().then(setUsers).catch(console.error);
     }, []);
 
-    // Когда меняем выбор, подтягиваем данные
     useEffect(() => {
         const u = users.find(u => u.id === +selectedId);
         if (u) {
@@ -27,13 +28,22 @@ export default function UpdateUserModal() {
 
     const handleClose = () => navigate('/users');
      const handleSubmit = async () => {
+         setLoading(true);
            try {
+               setErrors({});
                const payload = { username, password };
                await updateUser(selectedId, payload);
                handleClose();
                window.location.reload();
            } catch (e) {
-               console.error(e);
+               if (e.response && e.response.status === 400 && e.response.data) {
+                       setErrors(e.response.data);
+               } else {
+                   console.error('Create user failed:', e);
+               }
+           }
+           finally {
+               setLoading(false);
            }
      };
 
@@ -56,9 +66,11 @@ export default function UpdateUserModal() {
                         ))}
                     </TextField>
                     <TextField
-                        label="Username"
+                        label="Username*"
                         value={username}
                         onChange={e => setUsername(e.target.value)}
+                        error={Boolean(errors.username)}
+                        helperText={errors.username}
                         fullWidth
                     />
                     <TextField
@@ -76,7 +88,7 @@ export default function UpdateUserModal() {
                             onClick={handleSubmit}
                             disabled={!selectedId}
                         >
-                            Сохранить
+                            {loading ? 'Сохранение…' : 'Сохранить'}
                         </Button>
                     </Box>
                 </Stack>

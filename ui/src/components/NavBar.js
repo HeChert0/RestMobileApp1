@@ -4,6 +4,7 @@ import {
     AppBar, Toolbar, Typography, Button,
     Menu, MenuItem
 } from '@mui/material';
+import PhoneAndroidIcon from '@mui/icons-material/PhoneAndroid'
 import { Link as RouterLink, useNavigate, useLocation  } from 'react-router-dom';
 
 export default function NavBar() {
@@ -28,6 +29,7 @@ export default function NavBar() {
     return (
         <AppBar position="static">
             <Toolbar>
+                <PhoneAndroidIcon sx={{ mr: 1 }} />
                 <Typography variant="h6" sx={{ flexGrow: 1 }}>
                     MobileApp
                 </Typography>

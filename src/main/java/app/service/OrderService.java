@@ -106,7 +106,7 @@ public class OrderService {
     @Caching(
             evict = {
                     @CacheEvict(key = "#id"),
-                    @CacheEvict(cacheNames = "users", key = "#userIdBeforeDelete")
+                    @CacheEvict(cacheNames = "users", allEntries = true)
             }
     )
     @Transactional

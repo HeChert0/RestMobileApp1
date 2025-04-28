@@ -6,7 +6,6 @@ import reportWebVitals from './reportWebVitals';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 
-// создаём кастомную тему
 const theme = createTheme({
         palette: {
             mode: 'dark',
@@ -35,7 +34,7 @@ const theme = createTheme({
               styleOverrides: {
                     root: {
                           '&.Mui-focused': {
-                                color: '#4CAF50',               // зелёный label
+                                color: '#4CAF50',
                                   },
                         },
                   },
@@ -43,7 +42,7 @@ const theme = createTheme({
         MuiButton: {
               styleOverrides: {
                     containedSecondary: {
-                          color: '#000000',                // чёрный текст на зелёной кнопке
+                          color: '#000000',
                             },
                    },
             },

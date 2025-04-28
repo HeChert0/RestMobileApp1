@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { getAllUsers } from '../../services/userService';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import BulkOperationsToolbar from '../BulkOperationsToolbar';
 
 // @ts-nocheck
 export default function UsersCardList() {
@@ -162,6 +163,7 @@ export default function UsersCardList() {
             </Accordion>
 
             {/* Сетка карточек */}
+            <BulkOperationsToolbar basePath="/users" />
             <Grid
                 container
                 spacing={3}

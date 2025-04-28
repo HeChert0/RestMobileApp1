@@ -12,8 +12,9 @@ export default function BulkOperationsToolbar({ basePath }) {
                     variant="outlined"
                     color="secondary"
                     onClick={() => navigate(`${basePath}/bulk`)}
+                    sx={{ width: '160px', height: '50px' }}
                 >
-                    Bulk Create
+                    Bulk-Создание
                 </Button>
             </Stack>
         </Box>

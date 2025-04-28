@@ -4,8 +4,9 @@ import { getAllPhones } from '../../services/phoneService';
 import {
     Table, TableBody, TableCell, TableContainer,
     TableHead, TableRow, Paper, TextField,
-    Button, Select, MenuItem, Pagination, Stack
+    Button, Select, MenuItem, Pagination, Stack, Container
 } from '@mui/material';
+import BulkOperationsToolbar from '../BulkOperationsToolbar';
 
 export default function PhoneList() {
     const [allPhones, setAll] = useState([]);
@@ -46,6 +47,8 @@ export default function PhoneList() {
     const pageCount = Math.ceil(filtered.length / rowsPerPage);
 
     return (
+        <Container>
+            <BulkOperationsToolbar basePath="/phones" sx={{ mt: 4 }} />
         <Paper sx={{ p: 2, mt: 4 }}>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} mb={2}>
                 <TextField label="Бренд"   value={brand}    onChange={e => setBrand(e.target.value)} />
@@ -112,5 +115,6 @@ export default function PhoneList() {
                 </Stack>
             </Stack>
         </Paper>
+        </Container>
     );
 }

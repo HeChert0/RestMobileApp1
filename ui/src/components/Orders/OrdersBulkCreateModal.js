@@ -21,7 +21,13 @@ export default function OrdersBulkCreateModal() {
     }, []);
 
     const addRow = () => setRows([...rows, { userId: '', smartphoneIds: [] }]);
-    const removeRow = idx => setRows(rows.filter((_, i) => i !== idx));
+    const removeRow = idx => {
+        if (rows.length <= 1) {
+            alert("Нельзя удалить последний элемент");
+            return;
+        }
+        setRows(rows.filter((_, i) => i !== idx));
+    };
     const handleChange = (idx, field, value) => {
         const newRows = [...rows];
         newRows[idx] = { ...newRows[idx], [field]: value };
@@ -44,7 +50,7 @@ export default function OrdersBulkCreateModal() {
     return (
         <Modal open onClose={() => navigate('/orders')}>
             <Box sx={{ ...modalStyle, width: 600, maxHeight: '80vh', overflowY: 'auto' }}>
-                <Typography variant="h6">Bulk Create Orders</Typography>
+                <Typography variant="h6">Bulk-Создание Заказов</Typography>
                 <Stack spacing={2} sx={{ mt: 2 }}>
                     {rows.map((row, idx) => (
                         <Stack key={idx} direction="row" spacing={2} alignItems="center">
@@ -71,20 +77,19 @@ export default function OrdersBulkCreateModal() {
                                 )}
                             />
 
-                            <Button color="secondary" onClick={() => removeRow(idx)}>Delete</Button>
+                            <Button color="secondary" onClick={() => removeRow(idx)}>Удалить</Button>
                         </Stack>
                     ))}
 
                     <Button
                         variant="contained"
                         color="secondary"
-                        onClick={handleSubmit}
-                        disabled={loading}
+                        onClick={addRow}
                     >Добавить</Button>
 
                     <Stack direction="row" spacing={2} justifyContent="flex-end">
                         <Button onClick={() => navigate('/orders')} sx={{ color: 'text.primary' }}>
-                            Cancel
+                            Отмена
                         </Button>
                         <Button
                             variant="contained"
@@ -92,7 +97,7 @@ export default function OrdersBulkCreateModal() {
                             onClick={handleSubmit}
                             disabled={loading}
                         >
-                            {loading ? 'Submitting...' : 'Submit'}
+                            {loading ? 'Создание...' : 'Создать'}
                         </Button>
                     </Stack>
                 </Stack>

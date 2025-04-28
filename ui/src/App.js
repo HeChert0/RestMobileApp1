@@ -18,8 +18,9 @@ import CreatePhoneModal from './components/Phones/CreatePhoneModal';
 import UpdatePhoneModal from './components/Phones/UpdatePhoneModal';
 import DeletePhoneModal from './components/Phones/DeletePhoneModal';
 import BulkOperationsToolbar from './components/BulkOperationsToolbar';
-import { BulkCreateModal } from './components/BulkCreateModal';
 import OrdersBulkCreateModal from  './components/Orders/OrdersBulkCreateModal'
+import PhonesBulkCreateModal from './components/Phones/PhonesBulkCreateModal';
+import UsersBulkCreateModal from './components/Users/UsersBulkCreateModal';
 
 function Footer() {
     return (
@@ -47,74 +48,20 @@ function App() {
                     <Container>
                         <Routes>
                             <Route path="/" element={<Navigate to="/phones" replace />} />
-                            <Route path="/phones" element={<><BulkOperationsToolbar basePath="/phones" /><PhoneList /></>} />
-                            <Route path="/phones/bulk"
-                                element={
-                                    <BulkCreateModal
-                                        endpoint="http://localhost:8081/api/phones"
-                                        renderInputRows={(row, onChange) => (
-                                            <>
-                                                <TextField
-                                                    label="Brand"
-                                                    value={row.brand || ''}
-                                                    onChange={e => onChange('brand', e.target.value)}
-                                                />
-                                                <TextField
-                                                    label="Model"
-                                                    value={row.model || ''}
-                                                    onChange={e => onChange('model', e.target.value)}
-                                                />
-                                                <TextField
-                                                    label="Price"
-                                                    type="number"
-                                                    value={row.price || ''}
-                                                    onChange={e => onChange('price', parseFloat(e.target.value || 0))}
-                                                />
-                                            </>
-                                        )}
-                                    />
-                                }
-                            />
+                            <Route path="/phones"      element={<PhoneList />} />
+                            <Route path="/phones/bulk" element={<><PhoneList /><PhonesBulkCreateModal/></>} />
                             <Route path="/phones/new" element={<><PhoneList /><CreatePhoneModal /></>} />
                             <Route path="/phones/update" element={<><PhoneList /><UpdatePhoneModal /></>} />
                             <Route path="/phones/delete" element={<><PhoneList /><DeletePhoneModal /></>} />
 
                             <Route path="/orders" element={<><OrdersList /></>} />
-                            <Route
-                                path="/orders/bulk"
-                                element={
-                                    <>
-                                        <OrdersList />
-                                        <OrdersBulkCreateModal />
-                                    </>
-                                }
-                            />
+                            <Route path="/orders/bulk" element={<><OrdersList /><OrdersBulkCreateModal /> </>} />
                             <Route path="/orders/new" element={<><OrdersList /><CreateOrderModal /></>} />
                             <Route path="/orders/update" element={<><OrdersList /><UpdateOrderModal /></>} />
                             <Route path="/orders/delete" element={<><OrdersList /><DeleteOrderModal /></>} />
 
-                            <Route path="/users" element={<><BulkOperationsToolbar basePath="/users" /><UsersCardList /></>} />
-                            <Route path="/users/bulk" element={
-                                    <BulkCreateModal
-                                        endpoint="http://localhost:8081/api/users"
-                                        renderInputRows={(row, onChange) => (
-                                            <>
-                                                <TextField
-                                                    label="Username"
-                                                    value={row.username || ''}
-                                                    onChange={e => onChange('username', e.target.value)}
-                                                />
-                                                <TextField
-                                                    label="Password"
-                                                    type="password"
-                                                    value={row.password || ''}
-                                                    onChange={e => onChange('password', e.target.value)}
-                                                />
-                                            </>
-                                        )}
-                                    />
-                                }
-                            />
+                            <Route path="/users"       element={<UsersCardList/>} />
+                            <Route path="/users/bulk"  element={<><UsersCardList /><UsersBulkCreateModal/></>} />
                             <Route path="/users/new" element={<><UsersCardList /><CreateUserModal /></>} />
                             <Route path="/users/update" element={<><UsersCardList /><UpdateUserModal /></>} />
                             <Route path="/users/delete" element={<><UsersCardList /><DeleteUserModal /></>} />

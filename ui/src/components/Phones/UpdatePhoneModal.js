@@ -1,6 +1,7 @@
 // ui/src/components/UpdatePhoneModal.js
 import React, { useState, useEffect } from 'react';
-import { Modal, Box, Typography, TextField, Button, Stack, MenuItem } from '@mui/material';
+import { Modal, Box, Typography, TextField,
+        Button, Stack, MenuItem, CircularProgress } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { getAllPhones, updatePhone } from '../../services/phoneService';
 import { modalStyle } from '../modalStyle';
@@ -12,6 +13,8 @@ export default function UpdatePhoneModal() {
     const [brand, setBrand] = useState('');
     const [model, setModel] = useState('');
     const [price, setPrice] = useState('');
+    const [errors, setErrors] = useState({});
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         getAllPhones().then(setPhones);
@@ -23,14 +26,27 @@ export default function UpdatePhoneModal() {
             setBrand(p.brand);
             setModel(p.model);
             setPrice(p.price.toString());
+            setErrors({});
         }
     }, [selectedId, phones]);
 
     const handleClose = () => navigate('/phones');
     const handleSubmit = async () => {
-        await updatePhone(selectedId, { brand, model, price: parseFloat(price) });
-        handleClose();
-        window.location.reload();
+        setLoading(true);
+        setErrors({});
+        try {
+            await updatePhone(selectedId, { brand, model, price: parseFloat(price) });
+            handleClose();
+            window.location.reload();
+        } catch (e) {
+            if (e.response && e.response.status === 400 && e.response.data) {
+                setErrors(e.response.data);
+            } else {
+                console.error('Update phone failed:', e);
+            }
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -43,13 +59,32 @@ export default function UpdatePhoneModal() {
                             <MenuItem key={p.id} value={p.id}>{`${p.brand} ${p.model}`}</MenuItem>
                         ))}
                     </TextField>
-                    <TextField label="Бренд" value={brand} onChange={e => setBrand(e.target.value)} fullWidth />
-                    <TextField label="Модель" value={model} onChange={e => setModel(e.target.value)} fullWidth />
-                    <TextField label="Цена" type="number" value={price} onChange={e => setPrice(e.target.value)} fullWidth />
+                    <TextField label="Бренд"
+                               value={brand}
+                               onChange={e => setBrand(e.target.value)}
+                               error={Boolean(errors.brand)}
+                               helperText={errors.brand}
+                               fullWidth
+                    />
+                    <TextField label="Модель"
+                               value={model}
+                               onChange={e => setModel(e.target.value)}
+                               error={Boolean(errors.brand)}
+                               helperText={errors.brand}
+                               fullWidth
+                    />
+                    <TextField label="Цена"
+                               type="number"
+                               value={price}
+                               onChange={e => setPrice(e.target.value)}
+                               error={Boolean(errors.brand)}
+                               helperText={errors.brand}
+                               fullWidth
+                    />
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
                         <Button onClick={handleClose} sx={{ color: 'text.primary' }}>Отмена</Button>
-                        <Button variant="contained" color="secondary" onClick={handleSubmit} disabled={!selectedId}>
-                            Сохранить
+                        <Button variant="contained" color="secondary" onClick={handleSubmit} disabled={!selectedId || loading}>
+                            {loading ? <CircularProgress size={20} color="inherit" /> : 'Сохранить'}
                         </Button>
                     </Box>
                 </Stack>
