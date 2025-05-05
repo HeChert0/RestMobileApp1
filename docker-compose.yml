@@ -9,7 +9,7 @@ services:
     image: mysql:8.0
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: 1q2w3e4r!@#$
+      MYSQL_ROOT_PASSWORD: ${ DB_PASSWORD }
       MYSQL_DATABASE: smartphones_db
     ports:
       - "3307:3306"
@@ -24,8 +24,8 @@ services:
       - db
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/smartphones_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: 1q2w3e4r!@#$
+      SPRING_DATASOURCE_USERNAME: ${ DB_USER }
+      SPRING_DATASOURCE_PASSWORD: ${ DB_PASSWORD }
       SPRING_PROFILES_ACTIVE: docker
     ports:
       - "8081:8081"
