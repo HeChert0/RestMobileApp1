@@ -1,4 +1,3 @@
-// ui/src/components/UserDetail.js
 import React, { useEffect, useState } from 'react';
 import {
     Card, CardContent, Typography, Accordion,

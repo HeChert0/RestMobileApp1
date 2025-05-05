@@ -1,4 +1,3 @@
-// ui/src/components/PhoneList.js
 import React, { useEffect, useState } from 'react';
 import { getAllPhones } from '../../services/phoneService';
 import {
@@ -41,7 +40,6 @@ export default function PhoneList() {
         setPage(1);
     };
 
-    // данные для текущей страницы
     const start = (page - 1) * rowsPerPage;
     const current = filtered.slice(start, start + rowsPerPage);
     const pageCount = Math.ceil(filtered.length / rowsPerPage);
@@ -94,7 +92,6 @@ export default function PhoneList() {
                 </Table>
             </TableContainer>
 
-            {/* Пагинация и выбор размера страницы */}
             <Stack direction="row" justifyContent="space-between" alignItems="center" mt={2}>
                 <Pagination
                     count={pageCount}

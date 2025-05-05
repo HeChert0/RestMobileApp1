@@ -1,4 +1,3 @@
-// ui/src/components/OrdersBulkCreateModal.js
 import React, {useEffect,useState} from 'react';
 import { Modal, Box, Typography, Button, Stack, TextField, MenuItem } from '@mui/material';
 import Autocomplete from '@mui/material/Autocomplete';

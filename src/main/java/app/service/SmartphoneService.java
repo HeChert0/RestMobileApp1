@@ -7,7 +7,11 @@ import app.models.Smartphone;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.*;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,9 +47,9 @@ public class SmartphoneService {
     @Caching(
             put = @CachePut(key = "#id"),
             evict = {
-                    @CacheEvict(allEntries = true),                     // чистим кэш смартфонов
-                    @CacheEvict(cacheNames = "orders", allEntries = true),  // опционально: сбросить кэш заказов
-                    @CacheEvict(cacheNames = "users",  allEntries = true)   // сбросить кэш пользователей
+                @CacheEvict(allEntries = true),
+                @CacheEvict(cacheNames = "orders", allEntries = true),
+                @CacheEvict(cacheNames = "users",  allEntries = true)
             }
     )
     @Transactional
@@ -80,10 +84,10 @@ public class SmartphoneService {
 
     @Caching(
             evict = {
-                    @CacheEvict(key = "#id"),                               // удалить его из кэша смартфонов
-                    @CacheEvict(allEntries = true),                         // очистить кэш смартфонов целиком
-                    @CacheEvict(cacheNames = "orders", allEntries = true),  // опционально: сбросить кэш заказов
-                    @CacheEvict(cacheNames = "users",  allEntries = true)   // сбросить кэш пользователей
+                @CacheEvict(key = "#id"),
+                @CacheEvict(allEntries = true),
+                @CacheEvict(cacheNames = "orders", allEntries = true),
+                @CacheEvict(cacheNames = "users",  allEntries = true)
             }
     )
     @Transactional

@@ -1,7 +1,7 @@
 package app.controller;
 
-import app.dto.UserDto;
 import app.dto.OnCreate;
+import app.dto.UserDto;
 import app.mapper.UserMapper;
 import app.models.User;
 import app.service.UserService;
@@ -87,7 +87,8 @@ public class UserController {
         @ApiResponse(responseCode = "409", description = "User with given username already exists")
     })
     @PostMapping
-    public ResponseEntity<UserDto> createUser(@RequestBody @Validated(OnCreate.class) UserDto userDto) {
+    public ResponseEntity<UserDto> createUser(@RequestBody
+                                                  @Validated(OnCreate.class) UserDto userDto) {
         User user = userMapper.toEntity(userDto);
         User savedUser = userService.saveUser(user);
         return ResponseEntity.ok(userMapper.toDto(savedUser));

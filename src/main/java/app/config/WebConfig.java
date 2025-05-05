@@ -16,14 +16,14 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(visitCounterInterceptor)
-                .addPathPatterns("/**")
-                .excludePathPatterns(
-                        "/api/stats/**",
-                        "/error",
-                        "/static/**",
-                        "/webjars/**",
-                        "/favicon.ico"
-                );
+            .addPathPatterns("/**")
+            .excludePathPatterns(
+                "/api/stats/**",
+                "/error",
+                "/static/**",
+                "/webjars/**",
+                "/favicon.ico"
+            );
     }
 
     @Override

@@ -1,4 +1,3 @@
-// ui/src/components/UpdatePhoneModal.js
 import React, { useState, useEffect } from 'react';
 import { Modal, Box, Typography, TextField,
         Button, Stack, MenuItem, CircularProgress } from '@mui/material';

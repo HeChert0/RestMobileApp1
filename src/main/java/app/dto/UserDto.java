@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.util.List;
-import app.dto.OnCreate;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class UserDto {

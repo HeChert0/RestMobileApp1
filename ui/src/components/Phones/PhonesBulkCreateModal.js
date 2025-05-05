@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Modal, Box, Typography, TextField, Button, Stack } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import Autocomplete from '@mui/material/Autocomplete';
-import { getAllPhones, createPhonesBulk } from '../../services/phoneService'; // adjust imports if needed
+import { getAllPhones, createPhonesBulk } from '../../services/phoneService';
 import { modalStyle } from '../modalStyle';
 
 export default function PhonesBulkCreateModal() {

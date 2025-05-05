@@ -1,4 +1,3 @@
-// ui/src/services/userService.js
 import axios from 'axios';
 const BASE_URL = 'http://localhost:8081/api/users';
 

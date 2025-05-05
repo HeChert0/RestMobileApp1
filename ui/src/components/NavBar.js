@@ -1,4 +1,3 @@
-// ui/src/components/NavBar.js
 import React, { useState } from 'react';
 import {
     AppBar, Toolbar, Typography, Button,
@@ -19,7 +18,6 @@ export default function NavBar() {
         setAnchorEl(prev => ({ ...prev, [key]: null }));
     };
 
-    // Опишем сущности для генерации меню
     const entities = [
         { key: 'users', label: 'Пользователи', base: '/users' },
         { key: 'phones', label: 'Телефоны',   base: '/phones' },

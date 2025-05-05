@@ -1,4 +1,3 @@
-// ui/src/components/UsersCardList.js
 import React, { useEffect, useState } from 'react';
 import {
     Grid, Card, CardActionArea, CardContent,
@@ -19,7 +18,6 @@ export default function UsersCardList() {
     const [filtered, setFiltered] = useState([]);
     const navigate = useNavigate();
 
-    // фильтры
     const [username,      setUsername]      = useState('');
     const [minOrderPrice, setMinOrderPrice] = useState('');
     const [maxOrderPrice, setMaxOrderPrice] = useState('');
@@ -132,7 +130,6 @@ export default function UsersCardList() {
                                 </Grid>
                             </Grid>
 
-                            {/* Правая часть: кнопки */}
                             <Grid item xs={12} md={3}>
                                 <Grid container spacing={2} direction="row">
                                     <Grid item>
@@ -162,7 +159,6 @@ export default function UsersCardList() {
                 </AccordionDetails>
             </Accordion>
 
-            {/* Сетка карточек */}
             <BulkOperationsToolbar basePath="/users" />
             <Grid
                 container

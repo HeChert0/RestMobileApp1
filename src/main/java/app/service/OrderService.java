@@ -13,7 +13,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.*;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -105,8 +109,8 @@ public class OrderService {
 
     @Caching(
             evict = {
-                    @CacheEvict(key = "#id"),
-                    @CacheEvict(cacheNames = "users", allEntries = true)
+                @CacheEvict(key = "#id"),
+                @CacheEvict(cacheNames = "users", allEntries = true)
             }
     )
     @Transactional

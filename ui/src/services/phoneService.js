@@ -1,8 +1,6 @@
-// ui/src/services/phoneService.js
 // @ts-nocheck
 import axios from 'axios';
 
-// временно на прямую
 const BASE_URL = 'http://localhost:8081/api/phones';
 
 export const getAllPhones = async () => {

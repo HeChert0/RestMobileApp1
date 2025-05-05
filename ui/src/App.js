@@ -1,7 +1,6 @@
-// ui/src/App.js
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Container, Box, Typography, TextField } from '@mui/material'; // Добавлен TextField
+import { Container, Box, Typography, TextField } from '@mui/material';
 
 import NavBar from './components/NavBar';
 import PhoneList from './components/Phones/PhoneList';

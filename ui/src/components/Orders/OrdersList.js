@@ -1,4 +1,3 @@
-// ui/src/components/OrdersList.js
 import React, { useEffect, useState } from 'react';
 import {
     TextField, Button, Select, MenuItem,
@@ -18,7 +17,6 @@ export default function OrdersList() {
     const [page, setPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(5);
 
-    // теперь фильтр по username
     const [username, setUsername] = useState('');
 
     useEffect(() => {
@@ -52,7 +50,6 @@ export default function OrdersList() {
         setPage(1);
     };
 
-    // пагинация
     const start = (page - 1) * rowsPerPage;
     const current = filtered.slice(start, start + rowsPerPage);
     const pageCount = Math.ceil(filtered.length / rowsPerPage);
@@ -75,7 +72,6 @@ export default function OrdersList() {
                 </Button>
             </Stack>
 
-            {/* Список заказов */}
             {current.map(order => (
                 <Accordion key={order.id} sx={{ mb: 1 }}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -97,7 +93,6 @@ export default function OrdersList() {
                 </Accordion>
             ))}
 
-            {/* Пагинация */}
             <Stack
                 direction="row"
                 justifyContent="space-between"

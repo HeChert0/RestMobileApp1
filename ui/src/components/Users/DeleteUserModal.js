@@ -1,4 +1,3 @@
-// ui/src/components/DeleteUserModal.js
 import React, { useState, useEffect } from 'react';
 import { Modal, Box, Typography, Button, Stack, MenuItem, TextField } from '@mui/material';
 import { useNavigate } from 'react-router-dom';

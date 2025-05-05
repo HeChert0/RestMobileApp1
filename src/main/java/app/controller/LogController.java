@@ -9,7 +9,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -25,7 +30,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 
 @RestController
@@ -42,7 +52,7 @@ public class LogController {
     @Data
     @AllArgsConstructor
     private static class LogTask {
-        private String status; // PROCESSING COMPLETED FAILED
+        private String status;
         private Path tempFile;
         private LocalDate date;
     }
@@ -69,7 +79,8 @@ public class LogController {
             LogTask t = existing.get().getValue();
             if ("PROCESSING".equals(t.getStatus())) {
                 return ResponseEntity.status(HttpStatus.CONFLICT)
-                        .body("Task for date " + (date != null ? date : "all") + " is still processing");
+                        .body("Task for date "
+                                + (date != null ? date : "all") + " is still processing");
             } else {
                 return ResponseEntity.ok(existing.get().getKey());
             }
@@ -145,9 +156,10 @@ public class LogController {
         tasks.remove(taskId);
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
-                .contentType(MediaType.TEXT_PLAIN)
-                .body(resource);
+            .header(HttpHeaders.CONTENT_DISPOSITION,
+                    "attachment; filename=\"" + filename + "\"")
+            .contentType(MediaType.TEXT_PLAIN)
+            .body(resource);
     }
 
 
@@ -155,9 +167,9 @@ public class LogController {
             + " specified date (format yyyy-MM-dd)."
             + " If no date is provided, all logs are returned.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Logs retrieved successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid date format"),
-            @ApiResponse(responseCode = "500", description = "Error reading log file")
+        @ApiResponse(responseCode = "200", description = "Logs retrieved successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid date format"),
+        @ApiResponse(responseCode = "500", description = "Error reading log file")
     })
     @GetMapping
     public ResponseEntity<?> getLogsByDate(@RequestParam(required = false) String date) {
@@ -175,7 +187,7 @@ public class LogController {
             return ResponseEntity.ok(lines);
         } catch (DateTimeParseException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Invalid date format. Use yyyy-MM-dd");
+                .body("Invalid date format. Use yyyy-MM-dd");
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error reading log file: " + e.getMessage());
@@ -186,9 +198,9 @@ public class LogController {
             + " for a specified date as a text file."
             + " If no date is provided, the entire log file is downloaded.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Log file downloaded successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid date format"),
-            @ApiResponse(responseCode = "500", description = "Error reading log file")
+        @ApiResponse(responseCode = "200", description = "Log file downloaded successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid date format"),
+        @ApiResponse(responseCode = "500", description = "Error reading log file")
     })
     @GetMapping("/download")
     public ResponseEntity<Resource> downloadLogs(@RequestParam(required = false) String date) {

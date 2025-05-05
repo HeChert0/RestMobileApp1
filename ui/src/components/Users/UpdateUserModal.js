@@ -1,4 +1,3 @@
-// ui/src/components/UpdateUserModal.js
 import React, { useState, useEffect } from 'react';
 import { Modal, Box, Typography, TextField, Button, Stack, MenuItem } from '@mui/material';
 import { useNavigate } from 'react-router-dom';

@@ -1,4 +1,3 @@
-// ui/src/components/CreateUserModal.js
 import React, { useState } from 'react';
 import { Modal, Box, Typography, TextField, Button, Stack } from '@mui/material';
 import { useNavigate } from 'react-router-dom';

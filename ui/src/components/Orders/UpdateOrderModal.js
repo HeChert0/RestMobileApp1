@@ -1,4 +1,3 @@
-// ui/src/components/UpdateOrderModal.js
 import React, { useState, useEffect } from 'react';
 import { Modal, Box, Typography, TextField, Button, Stack, MenuItem, Chip } from '@mui/material';
 import Autocomplete from '@mui/material/Autocomplete';
